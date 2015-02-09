@@ -1,0 +1,124 @@
+Сишные функции вызываются через посредника libapogee.cpp, который и занимается трансляцией сишных в плюсовые функции
+
+Пока есть следующее:
+
+******  int ApnGlueOpen(unsigned int N);
+Открывает камеру номер N, если камера одна, писать N=1
+Возвращает 0 в случае удачи
+
+******  void ApnGlueGetMaxValues (double *exptime, int *roiw, int *roih, int *osw,
+******      int *osh, int *binw, int *binh, int *shutter, double *mintemp);
+Получает предельные значения, допустимые для камеры (по порядку аргументов функции):
+	время экспозиции, габариты изображения, габариты оверскана, максимальный биннинг,
+	есть ли затвор (==1 пока), минимальная температура (пока -30)
+
+******  int ApnGlueSetExpGeom (int roiw, int roih, int osw, int osh, int binw,
+******      int binh, int roix, int roiy, int *impixw, int *impixh, char whynot[]);
+Устанавливает геометрию для экспозиции:
+	габариты изображения, габариты оверскана (если его надо считывать), биннинг,
+	левый верхний угол подызображения, возвращает реальные размеры изображения (с учетом биннинга)
+	и строку с сообщением об ошибке (если не получилось)
+Возвращает 0 в случае успеха
+
+******  void ApnGlueExpAbort(void);
+Прервать экспозицию
+
+******  int ApnGlueStartExp (double *exptime, int shutter);
+Начать экспозицию с временем exptime (если оно слишком мало, в него запишется реальное время экспозиции),
+shutter==1 - затвор откроется
+Возвращает 0 в случае успеха
+
+******  int ApnGlueExpDone(void);
+Возвращает 1, если экспозиция завершена
+
+
+******  int ApnGlueReadPixels (unsigned short *buf, int nbuf, char whynot[]);
+Считывает накопленное изображение в буфер buf длиной nbuf, в случае ошибки помещает сообщение в whynot
+Возвращает 0 в случае успеха
+
+******  void ApnGlueSetTemp (double C);
+Устанавливает температуру чипа в С градусов цельсия
+
+******  int ApnGlueGetTemp (double *Cp);
+Получает текущую температуру в Cp
+Возвращает статус системы охлаждения: 0 - выключено, 1 - доходит до заданной точки, 2 - на заданной точке
+
+
+******  void ApnGlueSetFan (int speed);
+Устанавливает скорость вращения вентилятора (0..3)
+
+******  void ApnGlueGetName(char **sensor, char **camera);
+Возвращает имена сенсора и камеры (!!! не изменять эти величины)
+
+
+
+========================= добавил ===============================
+
+******  void ApnGlueReset();
+Полный сброс
+
+******  void ApnGlueClose();
+Закрыть файл (например, чтобы переподключить камеру)
+
+******  void ApnGluePauseTimer(int flag);
+Приостановить таймер (если flag == 1) или продолжить отсчет (если 0)
+
+******  int ApnGlueStopExposure();
+Остановить экспозицию (но не очищать матрицу), 0 - если успешно
+
+******  int ApnGluePowerDown();
+Перейти в спящий режим (возвращает 0, если успешно)
+
+******  void ApnGluePowerResume();
+Проснуться
+
+******  int ApnGlueReadShutter();
+Возвращает 1, если затвор открыт
+
+******  void ApnGlueOpenShutter(int flag);
+Открыть/закрыть затвор (согласно флагу)
+
+******  void ApnGlueDisablePostExpFlushing(int flag);
+Запретить/разрешить очистку после экспозиции
+
+******  void ApnGluePreFlash(int flag);
+Установить (по умолчанию установлено)/сбросить ИК засветку перед экспозицией
+
+******  void ApnGlueWriteCamMode(Apn_CameraMode CameraMode);
+Изменить режим работы камеры
+
+******  void ApnGlueSetDatabits(Apn_Resolution BitResolution);
+Установить 12 или 16 бит АЦП
+
+******  int ApnGlueReadSetPoint(double *temp, int *stat);
+Помещает в temp установочную температуру холодильника, в stat - +1, если
+температура достигнута. Возвращает 0, если холодильник выключен
+
+******  double ApnGlueGetHotTemp();
+Возвращает температуру горячего спая
+
+******  unsigned short ApnGlueGetSpeed();
+Получает скорость считывания
+
+******  void ApnGlueSetSpeed(unsigned short Sp);
+Устанавливает скорость считывания
+
+******  int ApnGlueWheelOpen(unsigned int id, Apn_Filter type);
+Инициализирует турель (id - номер или 1, если одна; type -тип)
+
+******  void ApnGlueWheelClose();
+Отключает устройство турели
+
+******  int ApnGlueWheelGetStatus();
+Возвращает статус (0 - готово, 1 - движется или отсутствует)
+
+******  int ApnGlueWheelGetMaxPos();
+Получает максимальный номер номер позиции турели (отсчет - от ЕДИНИЦЫ!),
+	возвращает 0 в случае успеха
+
+******  int ApnGlueWheelSetPos(int pos);
+Устанавливает турель в позицию pos (отсчет - от ЕДИНИЦЫ!),
+	возвращает 0 в случае успеха
+
+******  int ApnGlueWheelGetPos();
+Возвращает текущую позицию или -1 в случае ошибки

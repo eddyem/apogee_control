@@ -1,0 +1,22 @@
+1. cmake .
+2. make
+3. [make install] or just copy file takepic wherever you want
+
+File bta_print.c needed to fill specific FITS keys for BTA telescope
+If your want use this outside SAO RAS localnet, write:
+1. cmake -DNOBTA=1 .
+2. make ...
+
+
+If you wish to save not only FITS, define:
+*	-DUSERAW=1 to save raw data
+*	-DUSEPNG=1 to save png data
+
+define
+*	-DEBUG=1 for debug info
+
+By default observatory location is SAO RAS, to change coordinates define:
+*	-DTELLAT=lattitude in degr
+*	-DTELLONG=longitude in degr
+*	-DTELALT=altitude in m
+

@@ -1,0 +1,22 @@
+To compile and install wrapper make:
+
+0. Install libapogee ver. >= 3.0
+1. cd cmake
+2. cmake -DCAMERA_TYPE={camtype} ..
+3. make
+4. su -c "make install"
+[5] You can run test applications: ./test will make testing connection to your camera and
+	./test_wheel will make test connection to your wheel, increasing its current position.
+
+After installing cd to apogee_control working directory and compile&install apogee_control.
+
+
+{camtype} is type of your camera, one of:
+
+APOGEE_ASCENT
+APOGEE_ALTA
+APOGEE_ALTAF
+APOGEE_ASPEN
+APOGEE_QUAD
+
+If you wanna see debugging information, add -DEBUG to cmake options
