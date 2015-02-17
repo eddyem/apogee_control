@@ -23,6 +23,8 @@ do{ if(test_headers){printf("HISTORY: %s\n", comment);}else{	\
 	if(status) fits_report_error(stderr, status);\
 }}while(0)
 
+int shm_ready = FALSE; // BTA shm_get
+
 // calculate airmass
 extern void calc_airmass(
 	// in
@@ -70,14 +72,12 @@ char *angle_asc(double a){
 }
 
 typedef struct{
-	double Sid_time;		// S_time-EE_time
-	double JD;				// JDate
-	double Alpha;		// val_Alp
-	double Delta;		// val_Del
+	double JD;			// JDate
 	double Azimuth;		// val_A
 	double Zenith;		// val_Z
 	double P2;			// val_P
-	double Wind;			// val_Wnd
+	double Wind;		// val_Wnd
+	//double Tmir;		//
 } BTA_PARAMS;
 
 typedef struct _BTA_Que{
@@ -96,7 +96,10 @@ void write_bta_data(fitsfile *fp){
 	struct tm *tm_ut, *tm_loc;
 	tm_ut = gmtime(&t_now);
 	tm_loc = localtime(&t_now);
-	if(!get_shm_block(&sdat, ClientSide)) return;
+	if(!shm_ready){
+		if(!get_shm_block(&sdat, ClientSide)) return;
+		else shm_ready = TRUE;
+	}
 	if(!check_shm_block(&sdat)) return;
 	/*
 	 * Observatory parameters
@@ -219,12 +222,12 @@ void write_bta_data(fitsfile *fp){
 
 // get parameters
 int get_params(BTA_PARAMS *P){
-	if(!get_shm_block(&sdat, ClientSide)) return -1;
+	if(!shm_ready){
+		if(!get_shm_block(&sdat, ClientSide)) return -1;
+		else shm_ready = TRUE;
+	}
 	if(!check_shm_block(&sdat)) return -1;
-	P->Sid_time = S_time-EE_time;
 	P->JD = JDate;
-	P->Alpha = val_Alp;
-	P->Delta = val_Del;
 	P->Azimuth = val_A;
 	P->Zenith = val_Z;
 	P->P2 = val_P;
@@ -233,18 +236,23 @@ int get_params(BTA_PARAMS *P){
 }
 
 int push_param(){
+	DBG("Try to push parameter");
+	if(!shm_ready){
+		if(!get_shm_block(&sdat, ClientSide)) return -4;
+		else shm_ready = TRUE;
+	}
 	if(!check_shm_block(&sdat)) return -3;
 	BTA_PARAMS *Par = calloc(1, sizeof(BTA_PARAMS));
 	BTA_Queue *qcur = calloc(1, sizeof(BTA_Queue));
 	if(!Par || !qcur){
 		free(Par);
 		free(qcur);
-		return -1; // malloc error
+		return -2; // malloc error
 	}
 	if(get_params(Par)){
 		free(Par);
 		free(qcur);
-		return -2; // error getting parameters
+		return -1; // error getting parameters
 	}
 	qcur->data = Par;
 	qcur->next = NULL;
@@ -267,10 +275,7 @@ void write_bta_queue(fitsfile *fp){
 	do{
 		P = cur->data;
 		HISTRY("Data record # %d", i);
-		HISTRY("ST      = %.3f / Sidereal time: %s", P->Sid_time, time_asc(P->Sid_time));
 		HISTRY("JD      = %.8g / Julian date", P->JD);
-		HISTRY("T_RA    = %.8g / Telescope R.A: %s", P->Alpha / 3600., time_asc(P->Alpha));
-		HISTRY("T_DEC   = %.8g / Telescope Decl.: %s", P->Delta / 3600., angle_asc(P->Delta));
 		HISTRY("T_AZ    = %.8g / Telescope Az: %s", P->Azimuth / 3600., angle_asc(P->Azimuth));
 		HISTRY("T_ZD    = %.8g / Telescope ZD: %s", P->Zenith / 3600., angle_asc(P->Zenith));
 		HISTRY("T_P2    = %.8g / Current P: %s", P->P2 / 3600., angle_asc(P->P2));

@@ -8,6 +8,10 @@ To compile and install wrapper make:
 [5] You can run test applications: ./test will make testing connection to your camera and
 	./test_wheel will make test connection to your wheel, increasing its current position.
 
+
+Define -DEBUG=1 to see debug info
+
+
 After installing cd to apogee_control working directory and compile&install apogee_control.
 
 
@@ -19,4 +23,3 @@ APOGEE_ALTAF
 APOGEE_ASPEN
 APOGEE_QUAD
 
-If you wanna see debugging information, add -DEBUG to cmake options

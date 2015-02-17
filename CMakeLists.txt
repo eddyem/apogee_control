@@ -28,13 +28,13 @@ endif()
 if(DEFINED TELLAT)
 	add_definitions(-DTELLAT=${TELLAT})
 endif()
-set(LCPATH locale/ru)
+set(LCPATH ${CMAKE_CURRENT_SOURCE_DIR}/locale/ru)
 set(CFLAGS -O3 -Wall -Werror -W -std=gnu99)
 set(PO_FILE ${LCPATH}/messages.po)
 set(MO_FILE ${LCPATH}/LC_MESSAGES/${PROJ}.mo)
 set(RU_FILE ${LCPATH}/ru.po)
 find_package(PkgConfig REQUIRED)
-set(MODULES cfitsio>=3.0 apogeec>=1.71)
+set(MODULES cfitsio>=3.0 apogeec>=1.71 libusb>=0.1.10)
 if(DEFINED USEPNG)
 	set(MODULES ${MODULES} libpng>=1.2)
 	add_definitions(-DUSEPNG)
@@ -62,7 +62,7 @@ if(NOT GETTEXT_XGETTEXT_EXECUTABLE OR NOT GETTEXT_MSGFMT_EXECUTABLE)
 endif()
 add_custom_command(
 	OUTPUT ${PO_FILE}
-	COMMAND ${GETTEXT_XGETTEXT_EXECUTABLE} --from-code=koi8-r ${SOURCES} -c -k_ -kN_ -o ${PO_FILE}
+	COMMAND ${GETTEXT_XGETTEXT_EXECUTABLE} -D ${CMAKE_CURRENT_SOURCE_DIR} --from-code=koi8-r ${SOURCES} -c -k_ -kN_ -o ${PO_FILE}
 	COMMAND sed 's/charset=UTF-8/charset=koi8-r/' ${PO_FILE} | enconv > tmp && mv -f tmp ${PO_FILE}
 	COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} -Uis ${RU_FILE} ${PO_FILE}
 	DEPENDS ${SOURCES})

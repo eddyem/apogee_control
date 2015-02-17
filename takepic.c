@@ -3,6 +3,11 @@
 #include <signal.h>
 #include <dirent.h>
 #include <float.h>
+
+#include <usb.h>
+#include <sys/ioctl.h>
+#include <linux/usbdevice_fs.h>
+
 #include "usage.h"
 #include "camtools.h"
 #include "bta_print.h"
@@ -55,18 +60,92 @@ int check_filename(char *buff, char *outfile, char *ext){
 	return 0;
 }
 
+void reset_usb_port(int pid, int vid){
+	int fd, rc;
+	char buf[256], *d = NULL, *f = NULL;
+	struct usb_bus *bus;
+	struct usb_device *dev;
+	int found = 0;
+	usb_init();
+	usb_find_busses();
+	usb_find_devices();
+	for(bus = usb_busses; bus && !found; bus = bus->next) {
+		for(dev = bus->devices; dev && !found; dev = dev->next) {
+			if (dev->descriptor.idVendor == vid && dev->descriptor.idProduct == pid){
+				found = 1;
+				d = bus->dirname;
+				f = dev->filename;
+			}
+		}
+	}
+	if(!found){
+		// "Устройство не найдено"
+		ERR(_("Device not found"));
+		return;
+	}
+	DBG("found camera device, reseting");
+	snprintf(buf, 255, "/dev/bus/usb/%s/%s", d,f);
+	fd = open(buf, O_WRONLY);
+	if (fd < 0) {
+		// "Не могу открыть файл устройства %s: %s"
+		ERR(_("Can't open device file %s: %s"), buf, strerror(errno));
+		return;
+	}
+	info("Resetting USB device %s", buf);
+	rc = ioctl(fd, USBDEVFS_RESET, 0);
+	if (rc < 0) {
+		// "Не могу вызывать ioctl"
+		perror(_("Error in ioctl"));
+		return;
+	}
+	close(fd);
+}
+
 // quit by signal
 static void signals(int sig){
 	int u;
 	// "Получен сигнал %d, отключаюсь.\n"
 	printf(_("Get signal %d, quit.\n"), sig);
 	ApnGlueWheelClose();
-	ApnGlueExpAbort();
+	DBG("wheel closed");
+//	ApnGlueExpAbort(); // this function stubs all!
+//	DBG("exp aborted");
 	ApnGlueClose();
+	DBG("device closed");
 	u = unlink(pidfilename);
 	// "Не могу удалить PID-файл"
 	if(u == -1) perror(_("Can't delete PIDfile"));
 	exit(sig);
+}
+
+int sigcounter = 3;
+static void cnt_signals(int sig){
+	--sigcounter;
+	if(sigcounter != 0){
+		// "Нажмите Ctrl+C еще %d раз[а], чтобы прервать считывание\n"
+		printf(_("Press Ctrl+C %d time[s] more to interrupt reading\n"), sigcounter);
+		signal(SIGINT, cnt_signals);
+	}else{
+		signals(sig);
+	}
+}
+
+// Try to ignore all signals exept SIGINT, which is counted
+void ignore_signals(){
+	sigcounter = 3;
+	for(int _=0; _<256; _++)
+		signal(_, SIG_IGN);
+	signal(SIGINT, cnt_signals);
+}
+// We must take care about signals to avoid ctrl+C problems
+void catch_signals(){
+	for(int _=0; _<256; _++)
+		signal(_, SIG_IGN);
+	signal(SIGTERM, signals); // kill (-15) - quit
+	signal(SIGHUP, signals);  // hup - quit
+	signal(SIGINT, signals);  // ctrl+C - quit
+	signal(SIGQUIT, signals); // ctrl+\ - quit
+	//signal(SIGTSTP, SIG_IGN); // ignore ctrl+Z
 }
 
 // check for running process
@@ -129,21 +208,6 @@ void check4running(){
 	fclose(pidfile);
 }
 
-// Try to ignore all signals
-void ignore_signals(){
-	for(int _=0; _<256; _++)
-		signal(_, SIG_IGN);
-}
-// We must take care about signals to avoid ctrl+C problems
-void catch_signals(){
-	ignore_signals(); // first -- ignore all signals
-	signal(SIGTERM, signals); // kill (-15) - quit
-	signal(SIGHUP, signals);  // hup - quit
-	signal(SIGINT, signals);  // ctrl+C - quit
-	signal(SIGQUIT, signals); // ctrl+\ - quit
-	//signal(SIGTSTP, SIG_IGN); // ignore ctrl+Z
-}
-
 // Work with turret
 void parse_turret_args(){
 	int maxPos, curPos;
@@ -184,6 +248,7 @@ wheelret:
 
 int main(int argc, char **argv){
 	int i;	//cycles
+	int pid = -1, vid = -1; // device pid/vid
 	FILE *f_tlog = NULL; // temperature logging file
 	FILE *f_statlog = NULL; // stat file
 	int roih=0, roiw=0, osh=0, osw=0, binh=0, binw=0, shtr=0; // camera parameters
@@ -218,18 +283,26 @@ int main(int argc, char **argv){
 	// First - open camera devise
 	if(ApnGlueOpen(Ncam)){
 		// "Не могу открыть камеру, завершаю"
-		ERR("Can't open camera device, exit");
+		ERR(_("Can't open camera device, exit"));
 		return 1;
 	}
 	ApnGlueGetName(&sensor, &camera);
 	camera = strdup(camera); sensor = strdup(sensor);
 	// "Обнаружена камера '%s' с датчиком '%s'"
 	info(_("Find camera '%s' with sensor '%s'"), camera, sensor);
+
+	// "Адрес USB: "
+	char *msg = NULL;
+	msg = ApnGlueGetInfo(&pid, &vid);
+	printf("\n Camera info:\n%s\n", msg);
+	free(msg);
+
 	// Second - check whether we want do a simple power operations
 	if(StopRes){
 		switch(StopRes){
 			case Reset:
 				ApnGlueReset();
+				reset_usb_port(pid, vid);
 			break;
 			case Sleep:
 				if(ApnGluePowerDown())
@@ -279,6 +352,7 @@ int main(int argc, char **argv){
 		// "закрыт\n"
 		printf(_("closed\n"));
 	printCoolerStat(NULL);
+
 	if(set_T){
 		if(cooler_off){
 			ApnGlueSetTemp(0);
@@ -324,14 +398,14 @@ int main(int argc, char **argv){
 		ApnGlueSetDatabits(Apn_Resolution_SixteenBit);
 
 	if(ROspeed) ApnGlueSetSpeed(ROspeed);
-
+	DBG("here");
 	if(pre_exp){// pre-expose
 		// "Предварительная экспозиция"
 		info(_("Pre-expose"));
 		double E = 0.;
 		if(!twelveBit)
 		ApnGlueSetDatabits(Apn_Resolution_TwelveBit);
-		if(ApnGlueSetExpGeom(roiw, roih, 0, 0, binw, binh,
+		if(ApnGlueSetExpGeom(roiw, roih, 0, 0, 8, 8,
 						0, 0, &imW, &imH, whynot)){
 			// "Не могу установить параметры считывания: %s"
 			ERR("Can't set readout parameters: %s", whynot);
@@ -366,6 +440,7 @@ int main(int argc, char **argv){
 		ERR("Can't set readout parameters: %s", whynot);
 		goto returning;
 	}
+	DBG("geomery: %dx%d", imW, imH);
 	int L = imW*imH;
 	buf = (unsigned short*) calloc(L, sizeof(unsigned short));
 	if(!buf){
@@ -380,11 +455,13 @@ int main(int argc, char **argv){
 		if(exptime > -1){ // do expositions only if there is -x key
 			E = (double) exptime / 1000.;
 			I = (int) E;
+			ignore_signals();
 			if(ApnGlueStartExp(&E, shutter)){
 				// "Ошибка экспозиции!"
 				ERR("Error exposing frame!");
 				continue;
 			}
+			DBG("Exposing");
 #ifdef USE_BTA
 			push_param();
 #endif
@@ -415,6 +492,7 @@ int main(int argc, char **argv){
 #endif
 				}else while(!ApnGlueExpDone()) usleep(100000); // make 100ms error
 			}while(!ApnGlueExpDone());
+			DBG("exp done");
 #ifdef USE_BTA
 			push_param();
 #endif
@@ -474,10 +552,15 @@ int main(int argc, char **argv){
 		fflush(NULL);
 	}
 returning:
+	// set fan speed to 0 or 3 according cooler status
+	if(!only_turret) AutoadjustFanSpeed(TRUE);
+	DBG("abort exp");
+	ApnGlueExpAbort();
+	DBG("close");
+	ApnGlueClose();
+	DBG("free buffers & close files");
 	free(buf);
 	if(f_tlog) fclose(f_tlog);
 	if(f_statlog) fclose(f_statlog);
-	// set fan speed to 0 or 3 according cooler status
-	if(!only_turret) AutoadjustFanSpeed(TRUE);
 	return 0;
 }

@@ -153,6 +153,7 @@ int ApnGlueExpDone();
 void ApnGlueExpAbort(void);
 int ApnGlueStopExposure();
 int ApnGlueReadPixels(unsigned short *buf, int nbuf, char whynot[]);
+char *ApnGlueGetInfo(int *pid, int *vid);
 
 // Wheel
 int ApnGlueWheelOpen(unsigned int id, Apn_Filter type);

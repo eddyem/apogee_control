@@ -130,6 +130,25 @@ CamParams *getCamParams(std::string & msg){
 }
 
 /**
+ * return camera info
+ * Don't forget to call FREE!!!
+ * @param pid, vid - device PID and VID
+ */
+char *ApnGlueGetInfo(int *pid, int *vid){
+	if(pid || vid){
+		uint16_t v = 1, p = 2, d = 3;
+		alta->GetUsbVendorInfo(v, p, d);
+		if(pid) *pid = p;
+		if(vid) *vid = v;
+	}
+	std::string str = alta->GetInfo();
+	char *writable = new char[str.size() + 1];
+	std::copy(str.begin(), str.end(), writable);
+	writable[str.size()] = '\0';
+	return writable;
+}
+
+/**
  * Open camera device and assign it to variable <alta>
  * IT DON'T WORK WITH MULTIPLE CAMERAS SIMULTANEOUSLY!
  * @param id - camera identificator (number)
@@ -587,6 +606,8 @@ int ApnGlueReadPixels(unsigned short *buf, int nbuf, char whynot[]){
 	printf("DONE\n");
 	return altaerr;
 }
+
+
 
 /*
  ******************************** FILTER WHEEL ********************************
