@@ -1,5 +1,5 @@
 /*
- * bta_print.h
+ * events.h
  *
  * Copyright 2015 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
  *
@@ -20,10 +20,23 @@
  */
 
 #pragma once
-#ifndef __BTA_PRINT_H__
-#define __BTA_PRINT_H__
+#ifndef __EVENTS_H__
+#define __EVENTS_H__
 
-void write_bta_data(fitsfile *fp);
-int push_param();
+#include <stdlib.h>
+#include <stdio.h>
+#include <GL/glut.h>
+#include <GL/glext.h>
+#include <GL/freeglut.h>
 
-#endif // __BTA_PRINT_H__
+extern float Z; // координата Z (zoom)
+
+void keyPressed(unsigned char key, int x, int y);
+void keySpPressed(int key, int x, int y);
+void mousePressed(int key, int state, int x, int y);
+void mouseMove(int x, int y);
+void createMenu(int window);
+void menuEvents(int opt);
+//void mouseWheel(int button, int dir, int x, int y);
+
+#endif // __EVENTS_H__

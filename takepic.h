@@ -1,3 +1,24 @@
+/*
+ * takepic.h
+ *
+ * Copyright 2015 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ */
+#pragma once
 #ifndef __TAKEPIC_H__
 #define __TAKEPIC_H__
 #define _XOPEN_SOURCE 501
@@ -31,11 +52,6 @@
 #define LOCALEDIR "./locale"
 #endif
 
-#define _(String)				gettext(String)
-#define gettext_noop(String)	String
-#define N_(String)				gettext_noop(String)
-
-
 /*
  * SAO longitude 41 26 29.175
  * SAO latitude 43 39 12.7
@@ -51,6 +67,10 @@
 	#define TELALT 2070.0
 #endif
 
+/*
+#define _(String)				gettext(String)
+#define gettext_noop(String)	String
+#define N_(String)				gettext_noop(String)
 // режим отладки, -DEBUG
 #ifdef EBUG
 	#define RED			"\033[1;32;41m"
@@ -67,6 +87,8 @@
 	#define ERR(...)	do{fprintf(stderr, __VA_ARGS__);			\
 						fprintf(stderr, "\n");} while(0)
 #endif //EBUG
+
+*/
 
 extern int test_headers;
 

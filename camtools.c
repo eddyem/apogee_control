@@ -1,6 +1,28 @@
+/*
+ * camtools.c
+ *
+ * Copyright 2015 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ */
+
 #include "takepic.h"
 #include "camtools.h"
 #include "usage.h"
+#include "macros.h"
 
 #ifdef USE_BTA
 #include "bta_print.h"
@@ -361,3 +383,94 @@ int writeraw(char *filename, int width, int height, void *data){
 	return err;
 }
 #endif // USERAW
+
+#ifdef IMAGEVIEW
+// here are the functions for converting gray (GLubyte) image into colour buffer
+
+/**
+ * Convert gray (unsigned short) into RGB components (GLubyte)
+ * @argument L   - gray level
+ * @argument rgb - rgb array (GLubyte [3])
+ */
+void gray2rgb(double gray, GLubyte *rgb){
+	int i = gray * 4.;
+	double x = (gray - (double)i * .25) * 4.;
+	GLubyte r = 0, g = 0, b = 0;
+	//r = g = b = (gray < 1) ? gray * 256 : 255;
+	switch(i){
+		case 0:
+			g = (GLubyte)(255. * x);
+			b = 255;
+		break;
+		case 1:
+			g = 255;
+			b = (GLubyte)(255. * (1. - x));
+		break;
+		case 2:
+			r = (GLubyte)(255. * x);
+			g = 255;
+		break;
+		case 3:
+			r = 255;
+			g = (GLubyte)(255. * (1. - x));
+		break;
+		default:
+			r = 255;
+	}
+	*rgb++ = r;
+	*rgb++ = g;
+	*rgb   = b;
+}
+
+
+double linfun(double arg){ return arg; } // bung for PREVIEW_LINEAR
+double logfun(double arg){ return log(1.+arg); } // for PREVIEW_LOG
+double (*colorfun)(double) = linfun; // default function to convert color
+
+void change_colorfun(colorfn_type f){
+	switch (f){
+		case COLORFN_LINEAR:
+			colorfun = linfun;
+		break;
+		case COLORFN_LOG:
+			colorfun = logfun;
+		break;
+		default: // sqrt
+			colorfun = sqrt;
+	}
+}
+
+/**
+ * Convert given FITS image src into RGB array dst
+ * for OpenGL texture
+ * @param w, h - image size (in pixels)
+ * array dst should have size w*h*3
+ */
+void convert_grayimage(unsigned short *src, GLubyte *dst, int w, int h){
+	FNAME();
+	int  x, y, S = w*h;
+	unsigned short *ptr = src;
+	double avr, wd, max, min;
+	avr = max = min = (double)*src;
+	for(x = 1; x < S; x++, ptr++){
+		double pix = (double) *ptr;
+		if(pix > max) max = pix;
+		if(pix < min) min = pix;
+		avr += pix;
+	}
+	avr /= (double)S;
+	wd = max - min;
+	avr = (avr - min) / wd;	// normal average by preview
+	DBG("stat: avr=%f wd=%f max=%f min=%f", avr, wd, max, min);
+//	avr = -log(avr);		// scale factor
+//	if(avr > 1.) wd /= avr;
+	if(avr < 0.6) wd *= avr + 0.2;
+	DBG("now wd is %f", wd);
+	for(y = 0; y < h; y++){
+		for(x = 0; x < w; x++, dst += 3, src++){
+			gray2rgb(colorfun((*src - min) / wd), dst);
+		}
+	}
+}
+
+#endif // IMAGEVIEW

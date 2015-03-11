@@ -1,3 +1,24 @@
+/*
+ * takepic.c
+ *
+ * Copyright 2015 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ */
+
 #include "takepic.h"
 #include <locale.h>
 #include <signal.h>
@@ -11,6 +32,10 @@
 #include "usage.h"
 #include "camtools.h"
 #include "bta_print.h"
+#include "macros.h"
+#ifdef IMAGEVIEW
+#include "imageview.h"
+#endif
 
 #define BUFF_SIZ 4096
 #define PROC_BASE "/proc"
@@ -106,15 +131,18 @@ static void signals(int sig){
 	int u;
 	// "Получен сигнал %d, отключаюсь.\n"
 	printf(_("Get signal %d, quit.\n"), sig);
+	u = unlink(pidfilename);
+	// "Не могу удалить PID-файл"
+	if(u == -1) perror(_("Can't delete PIDfile"));
 	ApnGlueWheelClose();
 	DBG("wheel closed");
 //	ApnGlueExpAbort(); // this function stubs all!
 //	DBG("exp aborted");
 	ApnGlueClose();
 	DBG("device closed");
-	u = unlink(pidfilename);
-	// "Не могу удалить PID-файл"
-	if(u == -1) perror(_("Can't delete PIDfile"));
+	#ifdef IMAGEVIEW
+	clear_GL_context();
+	#endif
 	exit(sig);
 }
 
@@ -146,6 +174,13 @@ void catch_signals(){
 	signal(SIGINT, signals);  // ctrl+C - quit
 	signal(SIGQUIT, signals); // ctrl+\ - quit
 	//signal(SIGTSTP, SIG_IGN); // ignore ctrl+Z
+}
+
+void restore_signals(){
+	sigcounter = 3;
+	for(int _=0; _<256; _++)
+		signal(_, SIG_DFL);
+	unlink(pidfilename);
 }
 
 // check for running process
@@ -185,7 +220,7 @@ void check4running(){
 		if(readname(name, run) && strncmp(name, myname, 255) == 0){
 			// "Обнаружен работающий процесс (pid=%d), выход.\n"
 			ERR(_("\nFound running process (pid=%d), exit.\n"), run);
-			exit(0);
+			exit(7);
 		}
 	}
 	// there's no PID file or it's old
@@ -197,7 +232,7 @@ void check4running(){
 		if(strncmp(name, myname, 255) == 0){
 			// "Обнаружен работающий процесс (pid=%d), выход.\n"
 			ERR(_("\nFound running process (pid=%d), exit.\n"), pid);
-			exit(0);
+			exit(7);
 		}
 	}
 	closedir(dir);
@@ -246,6 +281,22 @@ wheelret:
 	ApnGlueWheelClose();
 }
 
+#ifdef IMAGEVIEW
+void change_displayed_image(_U_ unsigned short *buf, windowData *win){
+	FNAME();
+	if(!win) return;
+	pthread_mutex_lock(&win->mutex);
+	int w = win->image->w, h = win->image->h;
+	static GLubyte i = 0;
+	GLubyte *raw = win->image->rawdata;
+	DBG("image size: %dx%d",w,h);
+	convert_grayimage(buf, raw, w, h);
+	win->image->changed = 1;
+	pthread_mutex_unlock(&win->mutex);
+	i++;
+}
+#endif
+
 int main(int argc, char **argv){
 	int i;	//cycles
 	int pid = -1, vid = -1; // device pid/vid
@@ -256,13 +307,19 @@ int main(int argc, char **argv){
 	int imW=0, imH=0; // real (with binning) image size
 	unsigned short *buf = NULL; // image buffer
 	double mintemp=0.;
+#ifdef IMAGEVIEW
+	_U_ windowData *mainwin = NULL;
+	_U_ rawimage im;
+#endif
 
+	initial_setup(); // setup for macros.c
 	//setlocale(LC_ALL, getenv("LC_ALL"));
-	setlocale(LC_ALL, "");
+/*	setlocale(LC_ALL, "");
 	setlocale(LC_NUMERIC, "C");
 	bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
 	//bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
+*/
 
 	parse_args(argc, argv);
 
@@ -272,20 +329,25 @@ int main(int argc, char **argv){
 
 	if(test_headers){
 		writefits(NULL, imW, imH, NULL);
-		exit(0);
+		return(0);
 	}
 
 	// Turret block
 	if(open_turret) parse_turret_args();
-	if(only_turret) goto returning;
+	if(only_turret){
+		// "Не заданы параметры экспозиции, отключаюсь"
+		info(_("Expose parameters aren't specified, exit"));
+		goto returning;
+	}
 
 	// And camera block
 	// First - open camera devise
 	if(ApnGlueOpen(Ncam)){
 		// "Не могу открыть камеру, завершаю"
 		ERR(_("Can't open camera device, exit"));
-		return 1;
+		exit(9);
 	}
+DBG("open %d", Ncam);
 	ApnGlueGetName(&sensor, &camera);
 	camera = strdup(camera); sensor = strdup(sensor);
 	// "Обнаружена камера '%s' с датчиком '%s'"
@@ -398,7 +460,7 @@ int main(int argc, char **argv){
 		ApnGlueSetDatabits(Apn_Resolution_SixteenBit);
 
 	if(ROspeed) ApnGlueSetSpeed(ROspeed);
-	DBG("here");
+
 	if(pre_exp){// pre-expose
 		// "Предварительная экспозиция"
 		info(_("Pre-expose"));
@@ -415,18 +477,17 @@ int main(int argc, char **argv){
 		buf = (unsigned short*) calloc(L, sizeof(unsigned short));
 		if(!buf){
 			// "Ошибка выделения памяти!"
-			err(1, "malloc() failed");
+			ERR(_("malloc() failed!"));
 		}
 		if(ApnGlueStartExp(&E, 0)){
+			reset_usb_port(pid, vid);
 			// "Ошибка экспозиции!"
-			ERR("Error exposing frame!");
-			exit(-2);
+			if(ApnGlueStartExp(&E, 0)) ERR("Error exposing frame!");
 		}
 		ignore_signals();
 		if(ApnGlueReadPixels(buf, L, whynot)){
 			// "Ошибка считывания: %s\n"
 			ERR(_("Readout error: %s\n"), whynot);
-			exit(-2);
 		}
 		free(buf);
 		// restore signals
@@ -445,10 +506,23 @@ int main(int argc, char **argv){
 	buf = (unsigned short*) calloc(L, sizeof(unsigned short));
 	if(!buf){
 		// "Ошибка выделения памяти!"
-		err(1, "malloc() failed");
+		ERR(_("malloc() failed!"));
 	}
+#ifdef IMAGEVIEW
+	// start image view module if not need to save image or manually defined displaying
+	if(!save_image || show_image){
+		imageview_init();
+		im.protected = 1;
+		im.rawdata = MALLOC(GLubyte, imW*imH*3);
+		if(!im.rawdata) ERR("Can't allocate memory");
+		im.w = imW; im.h = imH;
+	}
+#endif
+	DBG("start %d expositions", pics);
 	for (i = 0; i < pics; i++){
+		DBG("spd");
 		AutoadjustFanSpeed(FALSE);
+		DBG("cooler");
 		temperature = printCoolerStat(NULL);
 		double E;
 		int I;
@@ -456,10 +530,11 @@ int main(int argc, char **argv){
 			E = (double) exptime / 1000.;
 			I = (int) E;
 			ignore_signals();
+			DBG("start exp");
 			if(ApnGlueStartExp(&E, shutter)){
+				reset_usb_port(pid, vid);
 				// "Ошибка экспозиции!"
-				ERR("Error exposing frame!");
-				continue;
+				if(ApnGlueStartExp(&E, shutter)) ERR("Error exposing frame!");
 			}
 			DBG("Exposing");
 #ifdef USE_BTA
@@ -524,7 +599,25 @@ int main(int argc, char **argv){
 					if (r == 0) info(_("File saved as '%s'"), whynot);
 				}
 			}
+#ifdef IMAGEVIEW
+			if(!save_image || show_image){
+				if(!get_windows_amount() || !mainwin){
+					mainwin = createGLwin("Sample window", 400, 400, &im);
+					if(!mainwin){
+						// "Не могу открыть окно OpenGL, просмотр будет недоступен!"
+						info(_("Can't open OpenGL window, image preview will be inaccessible"));
+					}else{
+						mainwin->killthread = 1;
+					}
+				}
+			}
+			if(get_windows_amount() && mainwin){
+				DBG("change image");
+				change_displayed_image(buf, mainwin);
+			}
+#endif
 			if(save_image){
+				DBG("save image");
 				#ifdef USERAW
 				WRITEIMG(writeraw, "raw");
 				#endif // USERAW
@@ -552,15 +645,28 @@ int main(int argc, char **argv){
 		fflush(NULL);
 	}
 returning:
-	// set fan speed to 0 or 3 according cooler status
-	if(!only_turret) AutoadjustFanSpeed(TRUE);
-	DBG("abort exp");
-	ApnGlueExpAbort();
-	DBG("close");
-	ApnGlueClose();
-	DBG("free buffers & close files");
-	free(buf);
-	if(f_tlog) fclose(f_tlog);
-	if(f_statlog) fclose(f_statlog);
+	if(!only_turret){
+		// set fan speed to 0 or 3 according cooler status
+		AutoadjustFanSpeed(TRUE);
+		DBG("abort exp");
+		ApnGlueExpAbort();
+		DBG("close");
+		ApnGlueClose();
+		restore_signals();
+		DBG("free buffers & close files");
+		free(buf);
+		if(f_tlog) fclose(f_tlog);
+		if(f_statlog) fclose(f_statlog);
+#ifdef IMAGEVIEW
+		DBG("test for GL window");
+		if(mainwin){ //window was created - wait for manual close
+			DBG("wait for window closing");
+			while(get_windows_amount()){
+				usleep(50000);
+			}
+			FREE(im.rawdata);
+		}
+#endif
+	}
 	return 0;
 }

@@ -1,4 +1,26 @@
+/*
+ * usage.c
+ *
+ * Copyright 2015 Edward V. Emelianov <eddy@sao.ru, edward.emelianoff@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ */
+
 #include "usage.h"
+#include "macros.h"
 
 Apn_Filter Tturret = Apn_Filter_FW50_7S; // turrer type
 int
@@ -52,6 +74,9 @@ bool
 	,stat_logging	= FALSE	// full stat log
 	,only_turret	= TRUE  // only move turret
 	,open_turret	= FALSE // work with turret
+#ifdef IMAGEVIEW
+	,show_image		= FALSE // show image on webgl window
+#endif
 ;
 
 int myatoi(int *num, const char *str){ // "careful" atoi
@@ -108,6 +133,9 @@ void usage(char *fmt, ...){
 	printf("\t-d,\t--dark\t\t\t%s\n",
 		// "не открывать затвор при экспозиции (\"темновые\")"
 		_("not open shutter when exposing (\"dark frames\")"));
+	printf("\t-D,\t--display-image\t\t%s\n",
+		// "Отобразить на экране полученное изображение"
+		_("Display last image"));
 	printf("\t-f,\t--no-flash\t\t%s\n",
 		// "не засвечивать матрицу перед экспозицией"
 		_("Don't flash CCD chip before expose"));
@@ -215,8 +243,9 @@ void usage(char *fmt, ...){
 }
 
 void parse_args(int argc, char **argv){
+	FNAME();
 	int i;
-	char short_options[] = "A:cdfF:gG:H:h:I:i:LlN:n:O:o:P:p:Rr:SsTt:v:Ww:x:X:Y:";
+	char short_options[] = "A:cdDfF:gG:H:h:I:i:LlN:n:O:o:P:p:Rr:SsTt:v:Ww:x:X:Y:";
 	struct option long_options[] = {
 /*		{ name, has_arg, flag, val }, где:
  * name - name of long parameter
@@ -229,6 +258,7 @@ void parse_args(int argc, char **argv){
 		{"author",		1,	0,	'A'},
 		{"cooler-off",	0,	0,	'c'},
 		{"dark",		0,	0,	'd'},
+		{"display-image",0,	0,	'D'},
 		{"no-flash",	0,	0,	'f'},
 		{"fan-speed",	1,	0,	'F'},
 		{"wheel-get",	0,	0,	'g'},
@@ -293,6 +323,15 @@ void parse_args(int argc, char **argv){
 			shutter = 0;
 			// "Съемка темновых"
 			info(_("Dark frames"));
+			break;
+		case 'D':
+#ifdef IMAGEVIEW
+			show_image = TRUE;
+			// "Отображение снятых кадров"
+			info(_("Will show images"));
+#else
+			ERR("%s was compiled without OpenGL support!", __progname);
+#endif
 			break;
 		case 'f':
 			noflash = TRUE;

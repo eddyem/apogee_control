@@ -3,26 +3,29 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid   ""
 msgstr  "Project-Id-Version: PACKAGE VERSION\n"
         "Report-Msgid-Bugs-To: \n"
-        "POT-Creation-Date: 2013-08-29 10:54+0400\n"
-        "PO-Revision-Date: 2011-06-28 09:22+0300\n"
-        "Last-Translator: Edward V. Emelianov <eddy@sao.ru>\n"
+        "POT-Creation-Date: 2015-03-11 18:55+0300\n"
+        "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+        "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
         "Language-Team: LANGUAGE <LL@li.org>\n"
         "Language: \n"
         "MIME-Version: 1.0\n"
         "Content-Type: text/plain; charset=koi8-r\n"
         "Content-Transfer-Encoding: 8bit\n"
+        "#-#-#-#-#  ru.po (PACKAGE VERSION)  #-#-#-#-#\n"
+        "#-#-#-#-#  ruru.po (PACKAGE VERSION)  #-#-#-#-#\n"
 
 #. "\tОпции:\n"
-#: usage.c:101
+#: usage.c:126
 #, c-format
 msgid   "\tOptions:\n"
 msgstr  "\tОпции:\n"
 
 #. "Обнаружен работающий процесс (pid=%d), выход.\n"
-#: takepic.c:108 takepic.c:120
+#: takepic.c:222 takepic.c:234
 #, c-format
 msgid   "\n"
         "Found running process (pid=%d), exit.\n"
@@ -30,7 +33,7 @@ msgstr  "\n"
         "Обнаружен работающий процесс (pid=%d), выход.\n"
 
 #. "\nЗатвор "
-#: takepic.c:273
+#: takepic.c:409
 #, c-format
 msgid   "\n"
         "The shutter is "
@@ -38,610 +41,697 @@ msgstr  "\n"
         "Затвор "
 
 #. "%d секунд до окончания паузы\n"
-#: takepic.c:450
+#: takepic.c:635
 #, c-format
 msgid   "%d seconds till pause ends\n"
 msgstr  "%d секунд до окончания паузы\n"
 
 #. "Не введено никаких параметров"
-#: usage.c:271
+#: usage.c:301
 msgid   "Any parameters are absent"
 msgstr  "Не введено никаких параметров"
 
 #. "Поле изображения: (0, %d)(0, %d)"
-#: takepic.c:305
+#: takepic.c:442
 #, c-format
 msgid   "Array field: (0, %d)(0, %d)"
 msgstr  "Поле изображения: (0, %d)(0, %d)"
 
+#: macros.c:183
+msgid   "Can't close mmap'ed file"
+msgstr  "Не могу закрыть mmap'нутый файл"
+
 #. "Не могу удалить PID-файл"
-#: takepic.c:68
+#: takepic.c:136
 msgid   "Can't delete PIDfile"
 msgstr  "Не могу удалить PID-файл"
 
 #. "Не могу переместить турель"
-#: takepic.c:169
+#: takepic.c:268
 msgid   "Can't move turret"
 msgstr  "Не могу переместить турель"
 
+#: macros.c:192
+msgid   "Can't munmap"
+msgstr  "Не могу вызывать munmap"
+
+#: macros.c:177
+#, c-format
+msgid   "Can't open %s for reading"
+msgstr  "Не могу открыть %s для чтения"
+
+#. "Не могу открыть окно OpenGL, просмотр будет недоступен!"
+#: takepic.c:608
+msgid   "Can't open OpenGL window, image preview will be inaccessible"
+msgstr  ""
+
+#. "Не могу открыть камеру, завершаю"
+#: takepic.c:347
+msgid   "Can't open camera device, exit"
+msgstr  "Не могу открыть камеру, завершаю"
+
+#. "Не могу открыть файл устройства %s: %s"
+#: takepic.c:116
+#, c-format
+msgid   "Can't open device file %s: %s"
+msgstr  "Не могу открыть файл устройства %s: %s"
+
 #. "Не могу открыть файл журнала статистики"
-#: takepic.c:264
+#: takepic.c:400
 msgid   "Can't open statistics log file"
 msgstr  "Не могу открыть журнал статистики"
 
 #. "Не могу открыть файл журнала температур"
-#: takepic.c:250
+#: takepic.c:386
 msgid   "Can't open temperature log file"
 msgstr  "Не могу открыть журнал температур"
 
 #. "Не могу открыть турель"
-#: takepic.c:152
+#: takepic.c:251
 msgid   "Can't open turret"
 msgstr  "Не могу открыть турель"
 
 #. "Не могу сохранить файл"
-#: takepic.c:428
+#: takepic.c:595
 msgid   "Can't save file"
 msgstr  "Не могу сохранить файл"
 
+#: macros.c:179
+#, c-format
+msgid   "Can't stat %s"
+msgstr  "Не могу выполнить stat для %s"
+
 #. "Захват кадра %d, время экспозиции - %g секунд\n"
-#: takepic.c:380
+#: takepic.c:546
 #, c-format
 msgid   "Capture frame %d, exp time - %g sec\n"
 msgstr  "Захват кадра %d, время экспозиции - %g секунд\n"
 
 #. "Изменение температуры холодильника"
-#: takepic.c:291
+#: takepic.c:428
 msgid   "Changing of cooler setpoint"
 msgstr  "Изменение температуры холодильника"
 
 #. "Холодильник отключен"
-#: camtools.c:115
+#: camtools.c:137
 msgid   "Cooler is off"
 msgstr  "Холодильник отключен"
 
 #. "Целевая температура: %g\n"
-#: camtools.c:110
+#: camtools.c:132
 #, c-format
 msgid   "Cooler setpoint: %g\n"
 msgstr  "Целевая температура: %g\n"
 
 #. "Съемка темновых"
-#: usage.c:295
+#: usage.c:325
 msgid   "Dark frames"
 msgstr  "Съемка темновых"
 
+#. "Устройство не найдено"
+#: takepic.c:108
+msgid   "Device not found"
+msgstr  "Устройство не найдено"
+
+#. "Отобразить на экране полученное изображение"
+#: usage.c:138
+msgid   "Display last image"
+msgstr  "Отобразить на экране полученное изображение"
+
 #. "не засвечивать матрицу перед экспозицией"
-#: usage.c:113
+#: usage.c:141
 msgid   "Don't flash CCD chip before expose"
 msgstr  "не засвечивать матрицу перед экспозицией"
 
+#. "Не могу вызывать ioctl"
+#: takepic.c:123
+msgid   "Error in ioctl"
+msgstr  "Не могу вызывать ioctl"
+
 #. "Ошибка перехода в спящий режим!"
-#: takepic.c:236
+#: takepic.c:372
 msgid   "Error: sleepless night!"
 msgstr  "Ошибка перехода в спящий режим!"
 
+#. "Не заданы параметры экспозиции, отключаюсь"
+#: takepic.c:339
+msgid   "Expose parameters aren't specified, exit"
+msgstr  ""
+
 #. "Время экспозиции: %dмс"
-#: usage.c:468
+#: usage.c:507
 #, c-format
 msgid   "Exposure time: %dms"
 msgstr  "Время экспозиции: %dмс"
 
 #. "Скорость вентилятора должна быть в пределе 0..3"
-#: usage.c:305
+#: usage.c:344
 msgid   "Fan speed should be in interval 0..3"
 msgstr  "Скорость вентилятора должна быть в пределе 0..3"
 
 #. "Установить скорость вращения вентиляторов в %d"
-#: usage.c:307
+#: usage.c:346
 #, c-format
 msgid   "Fan speed would be set to %d"
 msgstr  "Установить скорость вращения вентиляторов в %d"
 
 #. "Видимое поле: %s"
-#: takepic.c:303
+#: takepic.c:440
 #, c-format
 msgid   "Field of view: %s"
 msgstr  "Видимое поле: %s"
 
 #. "Файл записан в '%s'"
-#: takepic.c:432
+#: takepic.c:599
 #, c-format
 msgid   "File saved as '%s'"
 msgstr  "Файл записан в '%s'"
 
 #. "Обнаружена камера '%s' с датчиком '%s'"
-#: takepic.c:226
+#: takepic.c:354
 #, c-format
 msgid   "Find camera '%s' with sensor '%s'"
 msgstr  "Обнаружена камера '%s' с датчиком '%s'"
 
 #. Полное журналирование статистики
-#: usage.c:351
+#: usage.c:390
 msgid   "Full statistics logging"
 msgstr  "Полное журналирование статистики"
 
 #. "Получен сигнал %d, отключаюсь.\n"
-#: takepic.c:62
+#: takepic.c:133
 #, c-format
 msgid   "Get signal %d, quit.\n"
 msgstr  "Получен сигнал %d, отключаюсь.\n"
 
 #. "Получить информацию о турели"
-#: usage.c:313
+#: usage.c:352
 msgid   "Get turret's info"
 msgstr  "Получить информацию о турели"
 
 #. "Установка заданной температуры"
-#: camtools.c:118
+#: camtools.c:140
 msgid   "Go to setpoint"
 msgstr  "Установка заданной температуры"
 
 #. "Спящий режим"
-#: usage.c:416
+#: usage.c:455
 msgid   "Go to sleep"
 msgstr  "Спящий режим"
 
 #. "Гор. биннинг: %d"
-#: usage.c:336
+#: usage.c:375
 #, c-format
 msgid   "Horisontal binning: %d"
 msgstr  "Гор. биннинг: %d"
 
 #. "Игнорирую аргумент[ы]:\n"
-#: usage.c:496
+#: usage.c:535
 #, c-format
 msgid   "Ignore argument[s]:\n"
 msgstr  "Игнорирую аргумент[ы]:\n"
 
 #. "Статистика по изображению:\n"
-#: camtools.c:148
+#: camtools.c:170
 #, c-format
 msgid   "Image stat:\n"
 msgstr  "Статистика по изображению\n"
 
 #. "Тип изображения - %s"
-#: usage.c:341
+#: usage.c:380
 #, c-format
 msgid   "Image type - %s"
 msgstr  "Тип изображения - %s"
 
 #. "Название прибора - %s"
-#: usage.c:346
+#: usage.c:385
 #, c-format
 msgid   "Instrument name - %s"
 msgstr  "Название прибора - %s"
 
 #. "Поддержание заданной температуры"
-#: camtools.c:121
+#: camtools.c:143
 msgid   "Keeping setpoint"
 msgstr  "Поддержание заданной температуры"
 
+#: macros.c:182
+msgid   "Mmap error for input"
+msgstr  "Ошибка mmap для входных данных"
+
 #. "Переместить турель в позицию %d"
-#: usage.c:321
+#: usage.c:360
 #, c-format
 msgid   "Move turret into %d"
 msgstr  "Переместить турель в позицию %d"
 
+#: macros.c:175
+msgid   "No filename given!"
+msgstr  "Не указано имя файла!"
+
 #. "Не засвечивать камеру до экспозиции"
-#: usage.c:300
+#: usage.c:339
 msgid   "No pre-expose flash"
 msgstr  "Не засвечивать камеру до экспозиции"
 
 #. "Имя объекта - %s"
-#: usage.c:379
+#: usage.c:418
 #, c-format
 msgid   "Object name - %s"
 msgstr  "Имя объекта - %s"
 
 #. "Наблюдатели: %s"
-#: usage.c:384
+#: usage.c:423
 #, c-format
 msgid   "Observers: %s"
 msgstr  "Наблюдатели: %s"
 
 #. "Работать с камерой номер %d"
-#: usage.c:366
+#: usage.c:405
 #, c-format
 msgid   "Open camera number %d"
 msgstr  "Работать с камерой номер %d"
 
 #. "Пауза: %dс"
-#: usage.c:397
+#: usage.c:436
 #, c-format
 msgid   "Pause: %ds"
 msgstr  "Пауза: %dс"
 
 #. "Номер позиции должен быть больше 0"
-#: usage.c:319
+#: usage.c:358
 msgid   "Position number should be positive value"
 msgstr  "Номер позиции должен быть больше 0"
 
 #. pre-expose
 #. "Предварительная экспозиция"
-#: takepic.c:341
+#: takepic.c:466
 msgid   "Pre-expose"
 msgstr  "Предварительная экспозиция"
 
+#. "Нажмите Ctrl+C еще %d раз[а], чтобы прервать считывание\n"
+#: takepic.c:154
+#, c-format
+msgid   "Press Ctrl+C %d time[s] more to interrupt reading\n"
+msgstr  "Нажмите Ctrl+C еще %d раз[а], чтобы прервать считывание\n"
+
 #. "Автор программы: %s"
-#: usage.c:283
+#: usage.c:313
 #, c-format
 msgid   "Program author: %s"
 msgstr  "Автор программы: %s"
 
 #. "Название программы: %s"
-#: usage.c:389
+#: usage.c:428
 #, c-format
 msgid   "Program name: %s"
 msgstr  "Название программы: %s"
 
 #. "Считывание изображения:"
-#: takepic.c:408
+#: takepic.c:575
 #, c-format
 msgid   "Read image: "
 msgstr  "Считывание изображения: "
 
 #. "Ошибка считывания: %s\n"
-#: takepic.c:353 takepic.c:414
+#: takepic.c:490 takepic.c:581
 #, c-format
 msgid   "Readout error: %s\n"
 msgstr  "Ошибка считывания: %s\n"
 
 #. "Скорость считывания - беззнаковое целое!"
-#: usage.c:402
+#: usage.c:441
 msgid   "Readout speed should be unsigned int!"
 msgstr  "Скорость считывания - беззнаковое целое!"
 
 #. "Требуемая позиция больше максимальной"
-#: takepic.c:164
+#: takepic.c:263
 msgid   "Required position greater then max"
 msgstr  "ребуемая позиция больше максимальной"
 
 #. "Полный сброс"
-#: usage.c:410
+#: usage.c:449
 msgid   "Reset"
 msgstr  "Полный сброс"
 
 #. "Сохранение журнала температур"
-#: usage.c:357
+#: usage.c:396
 msgid   "Save temperature log"
 msgstr  "Сохранение журнала температур"
 
 #. "Серия из %d кадров"
-#: usage.c:374
+#: usage.c:413
 #, c-format
 msgid   "Series of %d frames"
 msgstr  "Серия из %d кадров"
 
 #. "отключить холодильник"
-#: usage.c:107 usage.c:289
+#: usage.c:132 usage.c:319
 msgid   "Set cooler off"
 msgstr  "отключить холодильник"
 
 #. "Устанавливаю скорость вращения вентиляторов в %d\n"
-#: camtools.c:97
+#: camtools.c:119
 #, c-format
 msgid   "Set fan speed %d\n"
 msgstr  "Устанавливаю скорость вращения вентиляторов в %d\n"
 
 #. "Установить скорость вентиляторов в F (0..3)"
-#: usage.c:116
+#: usage.c:144
 msgid   "Set fan speed to F (0..3)"
 msgstr  "Установить скорость вентиляторов в F (0..3)"
 
 #. "Установить интервал логгирования в %d секунд"
-#: usage.c:328
+#: usage.c:367
 #, c-format
 msgid   "Set logging interval to %d seconds"
 msgstr  "Установить интервал логгирования в %d секунд"
 
 #. "Установить температуру: %.3f"
-#: usage.c:437
+#: usage.c:476
 #, c-format
 msgid   "Set temperature: %.3f"
 msgstr  "Установить температуру: %.3f"
 
 #. "Отключение холодильника"
-#: takepic.c:285
+#: takepic.c:422
 msgid   "Switch cooler off"
 msgstr  "Отключение холодильника"
 
 #. "Температура ниже допустимой"
-#: takepic.c:294
+#: takepic.c:431
 msgid   "The temperature setpoint is too low"
 msgstr  "Температура ниже допустимой"
 
 #. "Максимальная (MAX) и текущая (CUR) позиции турели:\n"
-#: takepic.c:159
+#: takepic.c:258
 #, c-format
 msgid   "Turret MAXimum position and CURrent position:\n"
 msgstr  "Максимальная (MAX) и текущая (CUR) позиции турели:\n"
 
 #. "Номер турели должен быть больше 0"
-#: usage.c:451
+#: usage.c:490
 msgid   "Turret number should be positive value"
 msgstr  "Номер турели должен быть больше 0"
 
 #. "Статус неизвестен"
-#: camtools.c:124
+#: camtools.c:146
 msgid   "Unknown status"
 msgstr  "Хрен знает что"
 
 #. "Использование:\t%s [опции] [префикс выходных файлов]\n"
-#: usage.c:98
+#: usage.c:123
 #, c-format
 msgid   "Usage:\t%s [options] [output files prefix]\n"
 msgstr  "Использование:\t%s [опции] [префикс выходных файлов]\n"
 
 #. "Значение time-interval должно быть натуральным числом"
-#: usage.c:326
+#: usage.c:365
 msgid   "Value of time-interval must be non-zero positive"
 msgstr  "Значение time-interval должно быть натуральным числом"
 
 #. "Верт. биннинг: %d"
-#: usage.c:445
+#: usage.c:484
 #, c-format
 msgid   "Vertical binning: %d"
 msgstr  "Верт. биннинг: %d"
 
 #. "Подождите завершения перемещения турели "
-#: takepic.c:174
+#: takepic.c:273
 #, c-format
 msgid   "Wait, while turret is moving "
 msgstr  "Подождите завершения перемещения турели "
 
 #. "Активировать камеру"
-#: usage.c:459
+#: usage.c:498
 msgid   "Wakeup camera"
 msgstr  "Активировать камеру"
 
+#. "Отображение снятых кадров"
+#: usage.c:331
+msgid   "Will show images"
+msgstr  "Отображение снятых кадров"
+
 #. "Работать с турелью %d"
-#: usage.c:453
+#: usage.c:492
 #, c-format
 msgid   "Work with turret %d"
 msgstr  "Работать с турелью %d"
 
 #. "Неверный"
-#: usage.c:333 usage.c:442
+#: usage.c:372 usage.c:481
 msgid   "Wrong"
 msgstr  "Неверный"
 
 #. "Неверный номер камеры: %s"
-#: usage.c:363
+#: usage.c:402
 #, c-format
 msgid   "Wrong camera number: %s"
 msgstr  "Неверный номер камеры: %s"
 
 #. "Неверное время экспозиции: %s"
-#: usage.c:465
+#: usage.c:504
 #, c-format
 msgid   "Wrong exposure time: %s"
 msgstr  "Неверное время экспозиции: %s"
 
 #. "Неверное кол-во кадров: %s"
-#: usage.c:371
+#: usage.c:410
 #, c-format
 msgid   "Wrong frames number in series: %s"
 msgstr  "Неверное кол-во кадров: %s"
 
 #. "Неверная нижняя граница: %s"
-#: usage.c:77
+#: usage.c:102
 #, c-format
 msgid   "Wrong lower border: %s"
 msgstr  "Неверная нижняя граница: %s"
 
 #. "Неверная пауза: %s"
-#: usage.c:394
+#: usage.c:433
 #, c-format
 msgid   "Wrong pause length: %s"
 msgstr  "Неверная пауза: %s"
 
 #. "Неверное значение температуры: %s (должно быть от -35 до 30)"
-#: usage.c:433
+#: usage.c:472
 #, c-format
 msgid   "Wrong temperature: %s (must be from -35 to 30)"
 msgstr  "Неверное значение температуры: %s (должно быть от -35 до 30)"
 
 #. "Неверная верхняя граница: %s"
-#: usage.c:82
+#: usage.c:107
 #, c-format
 msgid   "Wrong upper border: %s"
 msgstr  "Неверная верхняя граница: %s"
 
 #. "Диапазон по X: [%d, %d]"
-#: usage.c:473
+#: usage.c:512
 #, c-format
 msgid   "X range: [%d, %d]"
 msgstr  "Диапазон по X: [%d, %d]"
 
 #. "Диапазон по Y: [%d, %d]"
-#: usage.c:478
+#: usage.c:517
 #, c-format
 msgid   "Y range: [%d, %d]"
 msgstr  "Диапазон по Y: [%d, %d]"
 
 #. -255. - there's no thermometer on hot side
 #. "В вашем светоприемнике нет \"горячего\" термометра"
-#: camtools.c:83
+#: camtools.c:105
 msgid   "Your camera have no hot temperature sensor\n"
 msgstr  "В вашем светоприемнике нет \"горячего\" термометра\n"
 
 #. "заткрыть затвор"
-#: usage.c:207
+#: usage.c:235
 msgid   "close shutter"
 msgstr  "заткрыть затвор"
 
 #. "закрыт\n"
-#: takepic.c:279
+#: takepic.c:415
 #, c-format
 msgid   "closed\n"
 msgstr  "закрыт\n"
 
 #. "не очищать матрицу после считывания"
-#: usage.c:198
+#: usage.c:226
 msgid   "don't flush ccd after expose"
 msgstr  "не очищать матрицу после считывания"
 
 #. "не открывать устройство, лишь отобразить шапку FITS"
-#: usage.c:210
+#: usage.c:238
 msgid   "don't open camera device, just show FITS header"
 msgstr  "не открывать устройство, лишь отобразить шапку FITS"
 
 #. "не сохранять изображения, лишь вести запись статистки"
-#: usage.c:137
+#: usage.c:165
 msgid   "don't save images, only make all-stat log"
 msgstr  "не сохранять изображения, лишь вести запись статистки"
 
 #. "Полный сброс"
-#: usage.c:164
+#: usage.c:192
 msgid   "full reset"
 msgstr  "Полный сброс"
 
 #. получить сведения о турели
-#: usage.c:119
+#: usage.c:147
 msgid   "get turret's parameters"
 msgstr  "получить сведения о турели"
 
 #. "перейти в спящий режим"
-#: usage.c:167
+#: usage.c:195
 msgid   "go to sleeping mode"
 msgstr  "перейти в спящий режим"
 
 #. "биннинг N пикселей по горизонтали"
-#: usage.c:128
+#: usage.c:156
 msgid   "horizontal binning to N pixels"
 msgstr  "биннинг N пикселей по горизонтали"
 
 #. "тип изображения"
-#: usage.c:131
+#: usage.c:159
 msgid   "image type"
 msgstr  "тип изображения"
 
 #. "название прибора"
-#: usage.c:134
+#: usage.c:162
 msgid   "instrument name"
 msgstr  "название прибора"
 
 #. "выполнить предварительную нулевую экспозицию для очистки матрицы"
-#: usage.c:201
+#: usage.c:229
 msgid   "make a preliminary zero exposition for cleaning CCD"
 msgstr  "выполнить предварительную нулевую экспозицию для очистки матрицы"
 
 #. "выдержать ptime секунд между экспозициями"
-#: usage.c:158
+#: usage.c:186
 msgid   "make pause for ptime seconds between expositions"
 msgstr  "выдержать ptime секунд между экспозициями"
 
 #. "N кадров в серии"
-#: usage.c:146
+#: usage.c:174
 msgid   "make series of N frames"
 msgstr  "N кадров в серии"
 
 #. "вести запись рабочих температур в файл temp_log"
-#: usage.c:140
+#: usage.c:168
 msgid   "make temperatures logging to file temp_log"
 msgstr  "вести запись рабочих температур в файл temp_log"
 
+#. "Ошибка выделения памяти!"
+#: takepic.c:480 takepic.c:509
+msgid   "malloc() failed!"
+msgstr  ""
+
 #. "не открывать затвор при экспозиции (\"темновые\")"
-#: usage.c:110
+#: usage.c:135
 msgid   "not open shutter when exposing (\"dark frames\")"
 msgstr  "не открывать затвор при экспозиции (\"темновые\")"
 
 #. "не сохранять изображение, а только отобразить статистику"
-#: usage.c:170
+#: usage.c:198
 msgid   "not save image, just show statistics"
 msgstr  "не сохранять изображение, а только отобразить статистику"
 
 #. "название объекта"
-#: usage.c:149
+#: usage.c:177
 msgid   "object name"
 msgstr  "название объекта"
 
 #. "имена наблюдателей"
-#: usage.c:152
+#: usage.c:180
 msgid   "observers' names"
 msgstr  "имена наблюдателей"
 
 #. "название программы наблюдений"
-#: usage.c:155
+#: usage.c:183
 msgid   "observing program name"
 msgstr  "название программы наблюдений"
 
 #. "только задать/получить температуру"
 #. "только отобразить/задать температуру"
-#: usage.c:173 usage.c:426
+#: usage.c:201 usage.c:465
 msgid   "only set/get temperature"
 msgstr  "только задать/получить температуру"
 
 #. "открыт\n"
-#: takepic.c:276
+#: takepic.c:412
 #, c-format
 msgid   "open\n"
 msgstr  "открыт\n"
 
 #. "открыть затвор"
-#: usage.c:204
+#: usage.c:232
 msgid   "open shutter"
 msgstr  "открыть затвор"
 
 #. "автор программы"
-#: usage.c:104
+#: usage.c:129
 msgid   "program author"
 msgstr  "автор программы"
 
 #. "возобновить питание"
-#: usage.c:185
+#: usage.c:213
 msgid   "resume system"
 msgstr  "возобновить питание"
 
 #. "выбрать диапазон для считывания"
-#: usage.c:191 usage.c:194
+#: usage.c:219 usage.c:222
 msgid   "select clip region"
 msgstr  "выбрать диапазон для считывания"
 
 #. "время экспозиции exptime мс"
-#: usage.c:188
+#: usage.c:216
 msgid   "set exposure time to exptime ms"
 msgstr  "время экспозиции exptime мс"
 
 #. "установить скорость считывания в N"
-#: usage.c:161
+#: usage.c:189
 msgid   "set readout speed to N"
 msgstr  "установить скорость считывания в N"
 
 #. переместить турель в N-ю позицию
-#: usage.c:122
+#: usage.c:150
 msgid   "set turret to Nth position"
 msgstr  "переместить турель в N-ю позицию"
 
 #. установить номер турели в N
-#: usage.c:182
+#: usage.c:210
 msgid   "set turret's number to N"
 msgstr  "установить номер турели в N"
 
 #. "задать рабочую температуру degr градусов"
-#: usage.c:176
+#: usage.c:204
 msgid   "set work temperature to degr C"
 msgstr  "задать рабочую температуру degr градусов"
 
 #. "интервал времени между последовательными записями в лог и HISTORY (в секундах)"
-#: usage.c:125
+#: usage.c:153
 msgid   "time interval between sequential writings to log & HISTORY (in "
         "seconds)"
 msgstr  "интервал времени между последовательными записями в лог и HISTORY (в "
         "секундах)"
 
 #. "биннинг N пикселей по вертикали"
-#: usage.c:179
+#: usage.c:207
 msgid   "vertical binning to N pixels"
 msgstr  "биннинг N пикселей по вертикали"
 
 #. "работать в 12-битном режиме"
-#: usage.c:213
+#: usage.c:241
 msgid   "work in a 12-bit ADC mode"
 msgstr  "работать в 12-битном режиме"
 
 #. "работать с N-й камерой"
-#: usage.c:143
+#: usage.c:171
 msgid   "work with Nth camera"
 msgstr  "работать с N-й камерой"
+
+#~ msgid        "Can't init mutex!"
+#~ msgstr       "Не могу инициировать взаимное исключение!"
+
+#~ msgid        "Error removing from list"
+#~ msgstr       "Ошибка удаления из списка"
+
+#~ msgid        "can't cancel a thread!"
+#~ msgstr       "Не могу отменить выполнение потока!"

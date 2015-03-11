@@ -1,0 +1,57 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-03-02 12:06+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=koi8-r\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: /home/eddy/tmp/image_view_module/macros.c:175
+msgid "No filename given!"
+msgstr ""
+
+#: /home/eddy/tmp/image_view_module/macros.c:177
+#, c-format
+msgid "Can't open %s for reading"
+msgstr ""
+
+#: /home/eddy/tmp/image_view_module/macros.c:179
+#, c-format
+msgid "Can't stat %s"
+msgstr ""
+
+#: /home/eddy/tmp/image_view_module/macros.c:182
+msgid "Mmap error for input"
+msgstr ""
+
+#: /home/eddy/tmp/image_view_module/macros.c:183
+msgid "Can't close mmap'ed file"
+msgstr ""
+
+#: /home/eddy/tmp/image_view_module/macros.c:192
+msgid "Can't munmap"
+msgstr ""
+
+#: /home/eddy/tmp/image_view_module/imageview.c:132
+msgid "Error removing from list"
+msgstr ""
+
+#: /home/eddy/tmp/image_view_module/imageview.c:362
+msgid "Can't init mutex!"
+msgstr ""
+
+#. "Уже инициализировано!"
+#: /home/eddy/tmp/image_view_module/imageview.c:389
+msgid "Already initialized!"
+msgstr ""
