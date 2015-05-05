@@ -59,6 +59,8 @@ int
 	,Shtr = -1		// shutter: -1 -- no action or SHUTTER_OPEN/SHUTTER_CLOSE
 	,noclean = 0	// don't flush camera after exp
 	,twelveBit = 0	// 12-bit ADC
+	,flipX = 0		// flip image around X axe (vertical flip)
+	,flipY = 0		// flip image around Y axe (horizontal flip)
 ;
 double temperature = -25.;	// setpoint of temperature
 
@@ -221,6 +223,12 @@ void usage(char *fmt, ...){
 		// "выбрать диапазон для считывания"
 		_("select clip region"));
 	// ONLY LONG
+	printf("\t\t--flipX\t\t\t%s\n",
+		// "отразить изображение вертикально (относительно оси X)"
+		_("flip image vertically (around X axe)"));
+	printf("\t\t--flipY\t\t\t%s\n",
+		// "отразить изображение горизонтально (относительно оси Y)"
+		_("flip image horizontally (around Y axe)"));
 	printf("\t\t--noclean\t\t%s\n",
 		// "не очищать матрицу после считывания"
 		_("don't flush ccd after expose"));
@@ -288,6 +296,8 @@ void parse_args(int argc, char **argv){
 		{"xclip",		1,	0,	'X'},
 		{"yclip",		1,	0,	'Y'},
 		// options, that have no short analogs:
+		{"flipX",			0,	&flipX,		1},
+		{"flipY",			0,	&flipY,		1},
 		{"noclean",			0,	&noclean,	1},
 		{"shutter-open",	0,	&Shtr,		1},
 		{"shutter-close",	0,	&Shtr,		0},

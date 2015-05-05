@@ -28,6 +28,16 @@ endif()
 if(DEFINED TELLAT)
 	add_definitions(-DTELLAT=${TELLAT})
 endif()
+if(NOT DEFINED PROCESSOR_COUNT)
+  set(PROCESSOR_COUNT 2) # by default 2 cores
+  set(cpuinfo_file "/proc/cpuinfo")
+  if(EXISTS "${cpuinfo_file}")
+    file(STRINGS "${cpuinfo_file}" procs REGEX "^processor.: [0-9]+$")
+    list(LENGTH procs PROCESSOR_COUNT)
+  endif()
+endif()
+add_definitions(-DTHREAD_NUMBER=${PROCESSOR_COUNT})
+message("In multithreaded operations will use ${PROCESSOR_COUNT} threads")
 set(LCPATH ${CMAKE_CURRENT_SOURCE_DIR}/locale/ru)
 set(CFLAGS -O2 -Wextra -Wall -Werror -W -std=gnu99)
 set(PO_FILE ${LCPATH}/messages.po)
@@ -42,6 +52,13 @@ endif()
 pkg_check_modules(${PROJ} REQUIRED ${MODULES})
 if(DEFINED USERAW)
 	add_definitions(-DUSERAW)
+endif()
+
+find_package(OpenMP)
+if(OPENMP_FOUND)
+	add_definitions(-DOMP)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
 add_executable(${PROJ} ${SOURCES} ${PO_FILE} ${MO_FILE})
@@ -87,12 +104,12 @@ if(DEFINED EBUG)
 	add_custom_target(
 		RU_FILE
 		COMMAND [ -f ${RU_FILE} ] && ${GETTEXT_MSGMERGE_EXECUTABLE} -Uis ${RU_FILE} ${PO_FILE} || cp ${PO_FILE} ${RU_FILE}
-		DEPENDS ${PO_FILE}
+		DEPENDS ${PO_FILE} ${SOURCES}
 	)
 	add_custom_command(
 		OUTPUT ${MO_FILE}
 		COMMAND make RU_FILE && ${GETTEXT_MSGFMT_EXECUTABLE} ${RU_FILE} -o ${MO_FILE}
-		DEPENDS ${PO_FILE}
+		DEPENDS ${PO_FILE} ${SOURCES}
 	)
 endif()
 

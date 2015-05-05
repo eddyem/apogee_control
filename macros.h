@@ -92,6 +92,17 @@ extern int globErr;
 	#define DBG(...) do{}while(0)
 #endif //EBUG
 
+// openmp for
+#ifdef OMP
+	#ifndef OMP_NUM_THREADS
+		#define OMP_NUM_THREADS THREAD_NUMBER
+	#endif
+	#define Stringify(x) #x
+	#define OMP_FOR(x) _Pragma(Stringify(omp parallel for x))
+#else
+	#define OMP_FOR(x)
+#endif // OMP
+
 /*
  * Memory allocation
  */

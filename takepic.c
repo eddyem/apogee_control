@@ -582,6 +582,29 @@ DBG("open %d", Ncam);
 				catch_signals();
 				continue;
 			}
+			// mirror image if needed
+			if(flipX){ // mirror vertically (around X axe)
+				unsigned short *newbuf = MALLOC(unsigned short, imW*imH);
+				OMP_FOR()
+				for(int _row = 0; _row < imH; _row++){
+					unsigned short *optr = &newbuf[_row*imW], *iptr = &buf[(imH-1-_row)*imW];
+					for(int _pix = 0; _pix < imW; _pix++)
+						*optr++ = *iptr++;
+				}
+				FREE(buf);
+				buf = newbuf;
+			}
+			if(flipY){ // mirror horizontally (around Y axe)
+				unsigned short *newbuf = MALLOC(unsigned short, imW*imH);
+				OMP_FOR()
+				for(int _row = 0; _row < imH; _row++){
+					unsigned short *optr = &newbuf[_row*imW], *iptr = &buf[(_row+1)*imW-1];
+					for(int _pix = 0; _pix < imW; _pix++)
+						*optr++ = *iptr--;
+				}
+				FREE(buf);
+				buf = newbuf;
+			}
 			// restore signals
 			catch_signals();
 			t_int = printCoolerStat(&t_ext);

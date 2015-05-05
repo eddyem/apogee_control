@@ -27,8 +27,8 @@ set(CMAKE_COLOR_MAKEFILE ON)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} IMSOURCES)
 
 find_package(PkgConfig REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
+find_package(OpenGL)
+find_package(GLUT)
 
 if(NOT GLUT_FOUND OR NOT OPENGL_FOUND)
 	message("GLUT library not found, image view won't be available")

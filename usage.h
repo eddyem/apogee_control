@@ -57,6 +57,8 @@ extern int
 	,Shtr
 	,noclean
 	,twelveBit
+	,flipX
+	,flipY
 ;
 extern double temperature;
 
