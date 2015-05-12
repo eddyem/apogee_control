@@ -41,6 +41,8 @@ char
 	,*observers = NULL	// observers name
 	,*prog_id = NULL	// program identificator
 	,*author = NULL		// author of program
+	,*subnet = NULL		// subnet for ethernet camera discovery
+	,*cammsgid = NULL	// MSG-ID of camera
 ;
 int
 	 exptime = -1	// exposition time (in ms), -1 means no exposition
@@ -138,6 +140,9 @@ void usage(char *fmt, ...){
 	printf("\t-D,\t--display-image\t\t%s\n",
 		// "Отобразить на экране полученное изображение"
 		_("Display last image"));
+	printf("\t-E,\t--ether-subnet\t\t%s\n",
+		// "Подсеть для поиска ethernet-камеры"
+		_("Subnet fot ethernet camera discovery"));
 	printf("\t-f,\t--no-flash\t\t%s\n",
 		// "не засвечивать матрицу перед экспозицией"
 		_("Don't flash CCD chip before expose"));
@@ -168,6 +173,9 @@ void usage(char *fmt, ...){
 	printf("\t-l,\t--tlog\t\t\t%s\n",
 		// "вести запись рабочих температур в файл temp_log"
 		_("make temperatures logging to file temp_log"));
+	printf("\t-M,\t--msg-id\t\t%s\n",
+		// "открыть камеру по MSG-ID"
+		_("open camera by its MSG-ID"));
 	printf("\t-N,\t--ncam=N\t\t%s\n",
 		// "работать с N-й камерой"
 		_("work with Nth camera"));
@@ -253,7 +261,7 @@ void usage(char *fmt, ...){
 void parse_args(int argc, char **argv){
 	FNAME();
 	int i;
-	char short_options[] = "A:cdDfF:gG:H:h:I:i:LlN:n:O:o:P:p:Rr:SsTt:v:Ww:x:X:Y:";
+	char short_options[] = "A:cdDE:fF:gG:H:h:I:i:LlM:N:n:O:o:P:p:Rr:SsTt:v:Ww:x:X:Y:";
 	struct option long_options[] = {
 /*		{ name, has_arg, flag, val }, где:
  * name - name of long parameter
@@ -267,6 +275,7 @@ void parse_args(int argc, char **argv){
 		{"cooler-off",	0,	0,	'c'},
 		{"dark",		0,	0,	'd'},
 		{"display-image",0,	0,	'D'},
+		{"--ether-subnet",1,0,	'E'},
 		{"no-flash",	0,	0,	'f'},
 		{"fan-speed",	1,	0,	'F'},
 		{"wheel-get",	0,	0,	'g'},
@@ -277,6 +286,7 @@ void parse_args(int argc, char **argv){
 		{"instrument",	1,	0,	'i'},
 		{"log-only",	0,	0,	'L'},
 		{"tlog",		0,	0,	'l'},
+		{"msg-id",		1,	0,	'M'},
 		{"ncam",		1,	0,	'N'},
 		{"nframes",		1,	0,	'n'},
 		{"object",		1,	0,	'O'},
@@ -343,6 +353,11 @@ void parse_args(int argc, char **argv){
 			ERR("%s was compiled without OpenGL support!", __progname);
 #endif
 			break;
+		case 'E':
+			subnet = strdup(optarg);
+			// "Подсеть: %s"
+			info(_("Subnet: %s"), subnet);
+			break;
 		case 'f':
 			noflash = TRUE;
 			// "Не засвечивать камеру до экспозиции"
@@ -404,6 +419,10 @@ void parse_args(int argc, char **argv){
 			only_turret = FALSE;
 			// "Сохранение журнала температур"
 			info(_("Save temperature log"));
+			break;
+		case 'M':
+				cammsgid = strdup(optarg);
+			info("MSG_ID: %s", cammsgid);
 			break;
 		case 'N':
 			only_turret = FALSE;

@@ -122,6 +122,9 @@ extern "C" {
 #endif
 
 // Camera
+void ApnGlueSetSubnet(char *val);
+int ApnGlueIsEthernet();
+void ApnGlueSetMsgId(char *str);
 int ApnGlueOpen(unsigned int id);
 void ApnGlueClose();
 void ApnGlueGetName(char **sensor, char **camera);

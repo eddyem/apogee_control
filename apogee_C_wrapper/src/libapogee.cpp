@@ -32,6 +32,7 @@
 #include <Quad.h>
 #include <CameraInfo.h>
 #include <FindDeviceUsb.h>
+#include <FindDeviceEthernet.h>
 #include <ApogeeFilterWheel.h>
 #include <ApogeeCam.h>
 
@@ -52,6 +53,15 @@ APOGEE_ALTAF, APOGEE_ASPEN or APOGEE_QUAD"
 
 // static class for CCD device
 static CCD *alta = NULL;
+static bool isethernet = false;
+int ApnGlueIsEthernet(){
+	if(isethernet) return 1;
+	else return 0;
+}
+static std::string cam_msg_id = "";
+void ApnGlueSetMsgId(char *str){
+	cam_msg_id = str;
+}
 // static variable with last error
 CCDerr altaerr = ALTA_OK;
 
@@ -106,8 +116,8 @@ std::string GetItemFromFindStr( const std::string & msg, const std::string & ite
 		 return result;
 		}
 	}
-	fprintf(stderr, "Bug! Can't find parameter in description string!\n");
-	exit(1);
+//	fprintf(stderr, "Bug! Can't find parameter in description string!\n");
+//	exit(1);
 	std::string noOp;
 	return noOp;
 }
@@ -121,12 +131,36 @@ uint16_t readUI(const std::string & msg, const std::string & key){
 	return (uint16_t) x;
 }
 CamParams *getCamParams(std::string & msg){
+	std::string port = GetItemFromFindStr(msg, "port=");
 	par.address = GetItemFromFindStr(msg, "address=");
+	if(port.size()){ // there's an network device
+		par.address.append(":");
+		par.address.append(port);
+	}
 	par.FirmwareRev = readUI(msg, "firmwareRev=");
 	par.Id = readUI(msg, "id=");
 	par.deviceType = GetItemFromFindStr(msg, "deviceType=");
 	par.model = GetItemFromFindStr(msg, "model=");
 	return &par;
+}
+
+static bool IsProperDevice(const std::string & msg){
+	std::string model = GetItemFromFindStr(msg, "model=");
+	std::string
+#if defined APOGEE_ASCENT
+	cam("Ascent");
+#elif defined APOGEE_ALTA
+	cam("Alta");
+#elif defined APOGEE_ALTAF
+	cam("AltaF");
+#elif defined APOGEE_ASPEN
+	cam("Aspen");
+#elif defined APOGEE_QUAD
+	cam("Quad");
+#else
+	return false;
+#endif
+    return(0 == model.compare(0, cam.size(), cam) ? true : false );
 }
 
 /**
@@ -135,6 +169,7 @@ CamParams *getCamParams(std::string & msg){
  * @param pid, vid - device PID and VID
  */
 char *ApnGlueGetInfo(int *pid, int *vid){
+	if(!alta || isethernet) return NULL;
 	if(pid || vid){
 		uint16_t v = 1, p = 2, d = 3;
 		alta->GetUsbVendorInfo(v, p, d);
@@ -148,6 +183,44 @@ char *ApnGlueGetInfo(int *pid, int *vid){
 	return writable;
 }
 
+std::string subnet = "";
+/**
+ * Set subnet name to use network camera
+ */
+void ApnGlueSetSubnet(char *val){
+	subnet = std::string(val);
+}
+
+/**
+ * try to find USB device
+ * return pointer to CamParams of found device or NULL
+ */
+static CamParams *findUSB(){
+	FindDeviceUsb look4cam;
+	std::string msg = look4cam.Find();
+	if(!IsProperDevice(msg)) // device not found
+		return NULL;
+	std::cout << "Camera MSG_ID=" << msg << std::endl;
+	isethernet = false;
+	return getCamParams(msg);
+}
+/**
+ * try to find ethernet device
+ * return pointer to CamParams of found device or NULL
+ */
+static CamParams *findNET(){
+	if(subnet.size() == 0) return NULL; // subnet wasn't defined
+	FindDeviceEthernet look4cam;
+	DBG(subnet);
+	clearenv(); // clear all proxy & other data
+	std::string msg = look4cam.Find(subnet);
+	if(!IsProperDevice(msg)) // device not found
+		return NULL;
+	std::cout << "Camera MSG_ID=" << msg << std::endl;
+	isethernet = true;
+	return getCamParams(msg);
+}
+
 /**
  * Open camera device and assign it to variable <alta>
  * IT DON'T WORK WITH MULTIPLE CAMERAS SIMULTANEOUSLY!
@@ -155,20 +228,43 @@ char *ApnGlueGetInfo(int *pid, int *vid){
  * @return 0 in case of success
  */
 int ApnGlueOpen(_U_ unsigned int id){
+	bool found = false;
+	CamParams *campar = NULL;
+	std::string ioInterface;
 	TRY{
+		if(cam_msg_id.size()){ // user had set MSG param, try it
+			DBG("Try to find camera by given id");
+			if(IsProperDevice(cam_msg_id) && (campar = getCamParams(cam_msg_id))){
+				found = true;
+				if(GetItemFromFindStr(cam_msg_id, "interface=") == "ethernet"){
+					clearenv(); // clear all proxy & other data
+					isethernet = true;
+				}else
+					isethernet = false;
+			}
+		}
+		if(!found && subnet.size()){ // there's an ability of network camera presence
+			DBG("Try to find network camera");
+			if((campar = findNET())){
+				found = true;
+			}else std::cerr << "Network camera not found, try USB" << std::endl;
+		}
+		if(!found){
+			DBG("Try to find USB camera");
+			if(!(campar = findUSB()))
+				RETERR(ALTA_NO_SUCH_DEVICE);
+		}
+		if(isethernet)
+			ioInterface = "ethernet";
+		else
+			ioInterface = "usb";
 		alta = (CCD*) new CCD();
-		std::string ioInterface("usb");
-		FindDeviceUsb look4cam;
-		std::string msg = look4cam.Find();
-		DBG(msg);
-		if(msg == "<d></d>")
-			RETERR(ALTA_NO_SUCH_DEVICE); // empty string
-		CamParams *par = getCamParams(msg);
-		alta->OpenConnection(ioInterface, par->address, par->FirmwareRev, par->Id);
+		alta->OpenConnection(ioInterface, campar->address, campar->FirmwareRev, campar->Id);
 		alta->Init();
 	}CATCH(ALTA_NO_SUCH_DEVICE);
 	return(altaerr);
 }
+
 
 /**
  * Close connection and destroy camera object

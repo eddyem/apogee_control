@@ -84,6 +84,8 @@ extern char
 	,*observers
 	,*prog_id
 	,*author
+	,*subnet
+	,*cammsgid
 ;
 void usage(char *fmt, ...);
 void parse_args(int argc, char **argv);

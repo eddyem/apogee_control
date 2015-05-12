@@ -27,7 +27,7 @@ find_path(APOGEE_LIB_INCLUDE_DIR NAMES Alta.h
 			PATH_SUFFIXES libapogee-3.0/apogee
 		)
 
-find_library(APOGEE_LIB NAMES apogee apogee-3.0.2865 apogeeu
+find_library(APOGEE_LIB NAMES apogee apogeeu
 				PATHS   /lib
 				/usr/lib
 				/usr/local/lib

@@ -342,9 +342,15 @@ int main(int argc, char **argv){
 
 	// And camera block
 	// First - open camera devise
+	if(subnet) ApnGlueSetSubnet(subnet); // set subnet name if there's an ethernet camera
+	if(cammsgid) ApnGlueSetMsgId(cammsgid); // set msgid given by user
 	if(ApnGlueOpen(Ncam)){
 		// "Не могу открыть камеру, завершаю"
 		ERR(_("Can't open camera device, exit"));
+		if(ApnGlueIsEthernet()){
+			// "Попытайтесь перезагрузить камеру через веб-интерфейс"
+			info(_("Try to reboot camera from web-interface"));
+		}
 		exit(9);
 	}
 DBG("open %d", Ncam);
@@ -356,15 +362,18 @@ DBG("open %d", Ncam);
 	// "Адрес USB: "
 	char *msg = NULL;
 	msg = ApnGlueGetInfo(&pid, &vid);
-	printf("\n Camera info:\n%s\n", msg);
-	free(msg);
+	if(msg){
+		printf("\n Camera info:\n%s\n", msg);
+		free(msg);
+	}
 
 	// Second - check whether we want do a simple power operations
 	if(StopRes){
 		switch(StopRes){
 			case Reset:
 				ApnGlueReset();
-				reset_usb_port(pid, vid);
+				if(pid > 0 && vid > 0)
+					reset_usb_port(pid, vid);
 			break;
 			case Sleep:
 				if(ApnGluePowerDown())
@@ -480,7 +489,8 @@ DBG("open %d", Ncam);
 			ERR(_("malloc() failed!"));
 		}
 		if(ApnGlueStartExp(&E, 0)){
-			reset_usb_port(pid, vid);
+			if(pid > 0 && vid > 0)
+				reset_usb_port(pid, vid);
 			// "Ошибка экспозиции!"
 			if(ApnGlueStartExp(&E, 0)) ERR("Error exposing frame!");
 		}
@@ -532,7 +542,8 @@ DBG("open %d", Ncam);
 			ignore_signals();
 			DBG("start exp");
 			if(ApnGlueStartExp(&E, shutter)){
-				reset_usb_port(pid, vid);
+				if(pid > 0 && vid > 0)
+					reset_usb_port(pid, vid);
 				// "Ошибка экспозиции!"
 				if(ApnGlueStartExp(&E, shutter)) ERR("Error exposing frame!");
 			}
