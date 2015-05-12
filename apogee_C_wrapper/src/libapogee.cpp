@@ -35,7 +35,7 @@
 #include <FindDeviceEthernet.h>
 #include <ApogeeFilterWheel.h>
 #include <ApogeeCam.h>
-
+/*
 #if defined APOGEE_ASCENT
 	#define CCD Ascent
 #elif defined APOGEE_ALTA
@@ -50,9 +50,11 @@
 	#error "You must define camera type: APOGEE_ASCENT, APOGEE_ALTA, \
 APOGEE_ALTAF, APOGEE_ASPEN or APOGEE_QUAD"
 #endif
+*/
 
 // static class for CCD device
-static CCD *alta = NULL;
+//static CCD *alta = NULL;
+static ApogeeCam *alta = NULL;
 static bool isethernet = false;
 int ApnGlueIsEthernet(){
 	if(isethernet) return 1;
@@ -143,7 +145,7 @@ CamParams *getCamParams(std::string & msg){
 	par.model = GetItemFromFindStr(msg, "model=");
 	return &par;
 }
-
+/*
 static bool IsProperDevice(const std::string & msg){
 	std::string model = GetItemFromFindStr(msg, "model=");
 	std::string
@@ -161,6 +163,17 @@ static bool IsProperDevice(const std::string & msg){
 	return false;
 #endif
     return(0 == model.compare(0, cam.size(), cam) ? true : false );
+}*/
+
+static bool assignAlta(const std::string & msg){
+	std::string model = GetItemFromFindStr(msg, "model=");
+	if(model.compare(0,6,"Ascent")==0) alta = (Ascent*) new Ascent();
+	else if(model.compare(0,4,"Alta")==0) alta = (Alta*) new Alta();
+	else if(model.compare(0,5,"AltaF")==0) alta = (AltaF*) new AltaF();
+	else if(model.compare(0,5,"Aspen")==0) alta = (Aspen*) new Aspen();
+	else if(model.compare(0,4,"Quad")==0) alta = (Quad*) new Quad();
+	else return false;
+	return true;
 }
 
 /**
@@ -198,9 +211,13 @@ void ApnGlueSetSubnet(char *val){
 static CamParams *findUSB(){
 	FindDeviceUsb look4cam;
 	std::string msg = look4cam.Find();
-	if(!IsProperDevice(msg)) // device not found
-		return NULL;
+//	if(!IsProperDevice(msg)) // device not found
+//		return NULL;
 	std::cout << "Camera MSG_ID=" << msg << std::endl;
+	if(!assignAlta(msg)){
+		std::cerr << "Unknown camera!" << std::endl;
+		return NULL;
+	}
 	isethernet = false;
 	return getCamParams(msg);
 }
@@ -214,9 +231,13 @@ static CamParams *findNET(){
 	DBG(subnet);
 	clearenv(); // clear all proxy & other data
 	std::string msg = look4cam.Find(subnet);
-	if(!IsProperDevice(msg)) // device not found
-		return NULL;
+//	if(!IsProperDevice(msg)) // device not found
+//		return NULL;
 	std::cout << "Camera MSG_ID=" << msg << std::endl;
+	if(!assignAlta(msg)){
+		std::cerr << "Unknown camera!" << std::endl;
+		return NULL;
+	}
 	isethernet = true;
 	return getCamParams(msg);
 }
@@ -234,14 +255,15 @@ int ApnGlueOpen(_U_ unsigned int id){
 	TRY{
 		if(cam_msg_id.size()){ // user had set MSG param, try it
 			DBG("Try to find camera by given id");
-			if(IsProperDevice(cam_msg_id) && (campar = getCamParams(cam_msg_id))){
+			//if(IsProperDevice(cam_msg_id) && (campar = getCamParams(cam_msg_id))){
+			if(assignAlta(cam_msg_id) && (campar = getCamParams(cam_msg_id))){
 				found = true;
 				if(GetItemFromFindStr(cam_msg_id, "interface=") == "ethernet"){
 					clearenv(); // clear all proxy & other data
 					isethernet = true;
 				}else
 					isethernet = false;
-			}
+			}else std::cerr << "Can't find camera with given ID" << std::endl;
 		}
 		if(!found && subnet.size()){ // there's an ability of network camera presence
 			DBG("Try to find network camera");
@@ -258,7 +280,7 @@ int ApnGlueOpen(_U_ unsigned int id){
 			ioInterface = "ethernet";
 		else
 			ioInterface = "usb";
-		alta = (CCD*) new CCD();
+		//alta = (CCD*) new CCD();
 		alta->OpenConnection(ioInterface, campar->address, campar->FirmwareRev, campar->Id);
 		alta->Init();
 	}CATCH(ALTA_NO_SUCH_DEVICE);

@@ -441,6 +441,8 @@ DBG("open %d", Ncam);
 		}
 	}
 
+	if(only_T || exptime < 0) goto returning;
+
 	// Размер пикселя: %g x %g
 	//info(_("Pixel size: %g x %g"), pixX, pixY);
 
@@ -459,7 +461,6 @@ DBG("open %d", Ncam);
 	if(hbin > binw) hbin = binw;
 	if(vbin > binh) vbin = binh;
 
-	if(only_T) goto returning;
 	AutoadjustFanSpeed(FALSE);
 	if(noflash) ApnGluePreFlash(0);
 	if(noclean) ApnGlueDisablePostExpFlushing(1);
