@@ -1,8 +1,8 @@
 To compile and install wrapper make:
 
 0. Install libapogee ver. >= 3.0
-1. cd cmake
-2. cmake -DCAMERA_TYPE={camtype} ..
+1. mkdir mk && cd mk
+2. cmake ..
 3. make
 4. su -c "make install"
 [5] You can run test applications: ./test will make testing connection to your camera and
@@ -11,15 +11,8 @@ To compile and install wrapper make:
 
 Define -DEBUG=1 to see debug info
 
-
 After installing cd to apogee_control working directory and compile&install apogee_control.
 
 
-{camtype} is type of your camera, one of:
 
-APOGEE_ASCENT
-APOGEE_ALTA
-APOGEE_ALTAF
-APOGEE_ASPEN
-APOGEE_QUAD
-
+Wrapper will try to find any of supported by libapogee cameras & use it
