@@ -291,17 +291,22 @@ int push_param(){
 void write_bta_queue(fitsfile *fp){
 #define HISTRY(...) do{CMNT(__VA_ARGS__); WRITEHIST(fp);}while(0)
 	if(!bta_queue) return;
-	BTA_Queue *cur = bta_queue;
+	BTA_Queue *cur = bta_queue, *ptr;
 	BTA_PARAMS *P;
 	int i = 0;
 	do{
 		P = cur->data;
+		ptr = cur;
 		HISTRY("Data record # %d", i);
-		HISTRY("JD      = %.8g / Julian date", P->JD);
+		HISTRY("JD      = %g / Julian date", P->JD);
 		HISTRY("T_AZ    = %.8g / Telescope Az: %s", P->Azimuth / 3600., angle_asc(P->Azimuth));
 		HISTRY("T_ZD    = %.8g / Telescope ZD: %s", P->Zenith / 3600., angle_asc(P->Zenith));
 		HISTRY("T_P2    = %.8g / Current P: %s", P->P2 / 3600., angle_asc(P->P2));
 		HISTRY("WIND    = %.2g / Wind speed, m/s", P->Wind);
 		i++;
-	}while((cur = cur->next));
+		cur = cur->next;
+		free(P);
+		free(ptr);
+		bta_queue = cur;
+	}while(cur);
 }

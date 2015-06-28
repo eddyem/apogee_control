@@ -12,13 +12,6 @@ endif()
 if(DEFINED VERBOSE OR DEFINED VERB OR DEFINED V)
 	set(CMAKE_VERBOSE_MAKEFILE ON)
 endif()
-if(NOT DEFINED CAMERA_TYPE)
-	message(FATAL_ERROR "You shoul define camera type CAMERA_TYPE: APOGEE_ASCENT, "
-		"APOGEE_ALTA, APOGEE_ALTAF, APOGEE_ASPEN or APOGEE_QUAD\n"
-		"For example, run\n\tcmake .. -DCAMERA_TYPE=APOGEE_ALTAF")
-else()
-	add_definitions("-D${CAMERA_TYPE}")
-endif()
 
 set(APOGEE_VERSION "3.0")
 set(APOGEE_SOVERSION "3")

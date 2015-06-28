@@ -59,6 +59,7 @@ extern int
 	,twelveBit
 	,flipX
 	,flipY
+	,histry
 ;
 extern double temperature;
 

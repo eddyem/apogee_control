@@ -550,7 +550,7 @@ DBG("open %d", Ncam);
 			}
 			DBG("Exposing");
 #ifdef USE_BTA
-			push_param();
+			if(histry) push_param();
 #endif
 			//exptime = (int)(E*1000.);
 			printf("\n\n");
@@ -575,13 +575,13 @@ DBG("open %d", Ncam);
 				if(I - tt > time_interval){
 					sleep(time_interval);
 #ifdef USE_BTA
-					push_param();
+					if(histry) push_param();
 #endif
 				}else while(!ApnGlueExpDone()) usleep(100000); // make 100ms error
 			}while(!ApnGlueExpDone());
 			DBG("exp done");
 #ifdef USE_BTA
-			push_param();
+			if(histry) push_param();
 #endif
 			// "Считывание изображения:"
 			printf(_("Read image: "));

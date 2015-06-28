@@ -63,6 +63,7 @@ int
 	,twelveBit = 0	// 12-bit ADC
 	,flipX = 0		// flip image around X axe (vertical flip)
 	,flipY = 0		// flip image around Y axe (horizontal flip)
+	,histry = 0		// write history at expositions
 ;
 double temperature = -25.;	// setpoint of temperature
 
@@ -255,6 +256,9 @@ void usage(char *fmt, ...){
 	printf("\t\t--twelve-bit\t\t%s\n",
 		// "работать в 12-битном режиме"
 		_("work in a 12-bit ADC mode"));
+	printf("\t\t--write-history\t\t%s\n",
+		// "записывать в историю параметры телескопа"
+		_("write telescope parameters into history"));
 	exit(0);
 }
 
@@ -313,7 +317,8 @@ void parse_args(int argc, char **argv){
 		{"shutter-close",	0,	&Shtr,		0},
 		{"test-headers",	0,	&test_headers, 1},
 		{"twelve-bit",		0,	&twelveBit, 1},
-		{"pre-exp",			0,	&pre_exp, 1},
+		{"pre-exp",			0,	&pre_exp, 	1},
+		{"write-history",	0,	&histry,	1},
 		{ 0, 0, 0, 0 }
 	};
 	if(argc == 1){

@@ -168,8 +168,8 @@ static bool IsProperDevice(const std::string & msg){
 static bool assignAlta(const std::string & msg){
 	std::string model = GetItemFromFindStr(msg, "model=");
 	if(model.compare(0,6,"Ascent")==0) alta = (Ascent*) new Ascent();
-	else if(model.compare(0,4,"Alta")==0) alta = (Alta*) new Alta();
 	else if(model.compare(0,5,"AltaF")==0) alta = (AltaF*) new AltaF();
+	else if(model.compare(0,4,"Alta")==0) alta = (Alta*) new Alta();
 	else if(model.compare(0,5,"Aspen")==0) alta = (Aspen*) new Aspen();
 	else if(model.compare(0,4,"Quad")==0) alta = (Quad*) new Quad();
 	else return false;
@@ -229,7 +229,9 @@ static CamParams *findNET(){
 	if(subnet.size() == 0) return NULL; // subnet wasn't defined
 	FindDeviceEthernet look4cam;
 	DBG(subnet);
-	clearenv(); // clear all proxy & other data
+	//clearenv(); // clear all proxy & other data
+	setenv("http_proxy", "", 1);
+	setenv("HTTP_PROXY", "", 1);
 	std::string msg = look4cam.Find(subnet);
 //	if(!IsProperDevice(msg)) // device not found
 //		return NULL;
