@@ -298,11 +298,11 @@ void write_bta_queue(fitsfile *fp){
 		P = cur->data;
 		ptr = cur;
 		HISTRY("Data record # %d", i);
-		HISTRY("JD      = %g / Julian date", P->JD);
-		HISTRY("T_AZ    = %.8g / Telescope Az: %s", P->Azimuth / 3600., angle_asc(P->Azimuth));
-		HISTRY("T_ZD    = %.8g / Telescope ZD: %s", P->Zenith / 3600., angle_asc(P->Zenith));
-		HISTRY("T_P2    = %.8g / Current P: %s", P->P2 / 3600., angle_asc(P->P2));
-		HISTRY("WIND    = %.2g / Wind speed, m/s", P->Wind);
+		HISTRY("JD      = %.8f / Julian date", P->JD);
+		HISTRY("T_AZ    = %.8f / Telescope Az: %s", P->Azimuth / 3600., angle_asc(P->Azimuth));
+		HISTRY("T_ZD    = %.8f / Telescope ZD: %s", P->Zenith / 3600., angle_asc(P->Zenith));
+		HISTRY("T_P2    = %.8f / Current P: %s", P->P2 / 3600., angle_asc(P->P2));
+		HISTRY("WIND    = %.2f / Wind speed, m/s", P->Wind);
 		i++;
 		cur = cur->next;
 		free(P);
