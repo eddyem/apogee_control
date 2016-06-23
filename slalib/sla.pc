@@ -1,0 +1,10 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: SlaLib
+Description: Fortran SLA library (warning, no C wrapper!)
+Version: 7.0.0
+Libs: -L${libdir} -lsla
+Cflags: -I${includedir}

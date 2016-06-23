@@ -1,6 +1,6 @@
 This utilite depends on library libapogee & C-wrapper over it
 
-First, you should install a fresest version of libapogee from directory "libapogee"
+First, you should install a latest version of libapogee from directory "libapogee"
 or from original site: http://www.randomfactory.com/downloads/
 If you will meet a bug in link stage ("can't find -lboost_regex-mt") cd to directory
 libapogee-[version]/apogee and run 
@@ -9,12 +9,14 @@ after this small fix cd .. and run make again.
 
 Second, you should install apogee_C_wrapper (cd to this directory and do as README sais).
 
-Third, install apogee_control itself:
+Third, install libsla.so (if using BTA module)
+
+And install apogee_control itself:
 
 1. mkdir mk && cd mk
 2. cmake ..
 3. make
-4. [su -c "make install"] or just copy file takepic wherever you want
+4. [su -c "make install"] or just copy file apogee_control wherever you want
 
 File bta_print.c needed to fill specific FITS keys for BTA telescope
 If your want use this outside SAO RAS localnet, write:

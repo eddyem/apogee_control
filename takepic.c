@@ -31,7 +31,9 @@
 
 #include "usage.h"
 #include "camtools.h"
+#ifdef USE_BTA
 #include "bta_print.h"
+#endif
 #include "macros.h"
 #ifdef IMAGEVIEW
 #include "imageview.h"

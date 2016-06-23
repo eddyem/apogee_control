@@ -33,6 +33,32 @@
 #include "camtools.h"
 #include "bta_print.h"
 #include "macros.h"
+#include <slamac.h>  // SLA macros
+
+extern void sla_amp(double*, double*, double*, double*, double*, double*);
+
+void slaamp(double ra, double da, double date, double eq, double *rm, double *dm ){
+	double r = ra, d = da, mjd = date, equi = eq;
+	sla_amp(&r, &d, &mjd, &equi, rm, dm);
+}
+const double jd0 = 2400000.5; // JD for MJD==0
+/**
+ * convert apparent coordinates (nowadays) to mean (JD2000)
+ * appRA, appDecl in seconds
+ * r, d in seconds
+ */
+void calc_mean(double appRA, double appDecl, double *r, double *d){
+	double ra, dec;
+	appRA *= DS2R;
+	appDecl *= DAS2R;
+	DBG("appRa: %g, appDecl: %g", appRA, appDecl);
+	double mjd = JDate - jd0;
+	slaamp(appRA, appDecl, mjd, 2000.0, &ra, &dec);
+	ra *= DR2S;
+	dec *= DR2AS;
+	if(r) *r = ra;
+	if(d) *d = dec;
+}
 
 #define CMNTSZ 79
 char comment[CMNTSZ + 1];
@@ -186,6 +212,17 @@ void write_bta_data(fitsfile *fp){
 	dtmp = val_Alp / 3600.; FTKEY(TDOUBLE, "T_RA", &dtmp);
 	CMNT("Telescope Decl.: %s", angle_asc(val_Del));
 	dtmp = val_Del / 3600.; FTKEY(TDOUBLE, "T_DEC", &dtmp);
+	double a2000, d2000;
+	calc_mean(InpAlpha, InpDelta, &a2000, &d2000);
+	CMNT("R.A. given by user (for J2000): %s", time_asc(a2000));
+	FTKEY(TDOUBLE, "INPRA0", &a2000);
+	CMNT("Decl. given by user (for J2000): %s", angle_asc(d2000));
+	FTKEY(TDOUBLE, "INPDEC0", &d2000);
+	calc_mean(CurAlpha, CurDelta, &a2000, &d2000);
+	CMNT("Current R.A. (for J2000): %s", time_asc(a2000));
+	FTKEY(TDOUBLE, "CURRA0", &a2000);
+	CMNT("Current Decl. (for J2000): %s", angle_asc(d2000));
+	FTKEY(TDOUBLE, "CURDEC0", &d2000);
 	// A / Azimuth
 	CMNT("Current object Azimuth: %s", angle_asc(tag_A));
 	dtmp = tag_A / 3600.; FTKEY(TDOUBLE, "A", &dtmp);

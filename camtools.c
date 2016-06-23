@@ -48,9 +48,9 @@ void print_fits_header(fitsfile *fptr __attribute((unused)), int datatype,
 	void _ll(char* r, void* p){snprintf(r, 80, "%lld", *(long long*)p);}
 	void _f(char* r, void* p){snprintf(r, 80, "%g", *(float*)p);}
 	void _d(char* r, void* p){snprintf(r, 80, "%g", *(double*)p);}
-	void _fc(char* r, void* p){snprintf(r, 80, "(%.4g, %.4g)",
+	void _fc(char* r, void* p){snprintf(r, 80, "(%.8g, %.8g)",
 								((float*)p)[0], ((float*)p)[1]);}
-	void _dc(char* r, void* p){snprintf(r, 80, "(%.4g, %.4g)",
+	void _dc(char* r, void* p){snprintf(r, 80, "(%.8g, %.8g)",
 								((double*)p)[0], ((double*)p)[1]);}
 	void _log(char* r, void* p){snprintf(r, 80, "'%s'", (int*)p ? "true" : "false");}
 	void _str(char* r, void* p){snprintf(r, 80, "'%s'", (char*)p);}
