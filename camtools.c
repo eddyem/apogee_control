@@ -23,6 +23,7 @@
 #include "camtools.h"
 #include "usage.h"
 #include "macros.h"
+#include "defhdrs.h"
 
 #ifdef USE_BTA
 #include "bta_print.h"
@@ -30,60 +31,6 @@
 
 unsigned short max=0, min=65535; // extremums of current image
 double avr, std; // average value and standard deviation
-
-/*
- * Fake util to show FITS keys in stdout
- * when test_headers == 1
- */
-void print_fits_header(fitsfile *fptr __attribute((unused)), int datatype,
-						char *keyname, void *value, char *comment){
-	void _ub(char* r, void* p){snprintf(r, 80, "%hhu", *(unsigned char*)p);}
-	void _b(char* r, void* p){snprintf(r, 80, "%hhd", *(char*)p);}
-	void _us(char* r, void* p){snprintf(r, 80, "%hu", *(unsigned short*)p);}
-	void _ui(char* r, void* p){snprintf(r, 80, "%u", *(unsigned int*)p);}
-	void _ul(char* r, void* p){snprintf(r, 80, "%lu", *(unsigned long*)p);}
-	void _s(char* r, void* p){snprintf(r, 80, "%hd", *(short*)p);}
-	void _i(char* r, void* p){snprintf(r, 80, "%d", *(int*)p);}
-	void _l(char* r, void* p){snprintf(r, 80, "%ld", *(long*)p);}
-	void _ll(char* r, void* p){snprintf(r, 80, "%lld", *(long long*)p);}
-	void _f(char* r, void* p){snprintf(r, 80, "%g", *(float*)p);}
-	void _d(char* r, void* p){snprintf(r, 80, "%g", *(double*)p);}
-	void _fc(char* r, void* p){snprintf(r, 80, "(%.8g, %.8g)",
-								((float*)p)[0], ((float*)p)[1]);}
-	void _dc(char* r, void* p){snprintf(r, 80, "(%.8g, %.8g)",
-								((double*)p)[0], ((double*)p)[1]);}
-	void _log(char* r, void* p){snprintf(r, 80, "'%s'", (int*)p ? "true" : "false");}
-	void _str(char* r, void* p){snprintf(r, 80, "'%s'", (char*)p);}
-	void _unk(char* r, void* p __attribute((unused))){sprintf(r, "unknown datatype");}
-	char tmp[81], res[81];
-	void (*__)(char*, void*);
-	switch(datatype){
-		case TBIT:
-		case TBYTE: __ = _ub; break;
-		case TSBYTE: __ = _b; break;
-		case TUSHORT: __ = _us; break;
-		case TUINT: __ = _ui; break;
-		case TULONG: __ = _ul; break;
-		case TSHORT: __ = _s; break;
-		case TINT: __ = _i; break;
-		case TLONG: __ = _l; break;
-		case TLONGLONG: __ = _ll; break;
-		case TFLOAT: __ = _f; break;
-		case TDOUBLE: __ = _d; break;
-		case TCOMPLEX: __ = _fc; break;
-		case TDBLCOMPLEX: __ = _dc; break;
-		case TLOGICAL: __ = _log; break;
-		case TSTRING: __ = _str; break;
-		default: __ = _unk;
-	}
-	__(res, value);
-	if(strlen(res) < 20)
-		snprintf(tmp, 80, "%-8s = %-20s", keyname, res);
-	else
-		snprintf(tmp, 80, "%-8s = %s", keyname, res);
-	snprintf(res, 80, "%s / %s", tmp, comment);
-	printf("%s\n", res);
-}
 
 /*
  * set fun speed
@@ -225,63 +172,60 @@ int writefits(char *filename, int width, int height, void *data){
 	TRYFITS(fits_create_file, &fp, filename);
 	TRYFITS(fits_create_img, fp, USHORT_IMG, 2, naxes);
 	// FILE / Input file original name
-	WRITEKEY(fp, TSTRING, "FILE", filename, "Input file original name");
+	WRITEKEY(TSTRING, "FILE", filename, "Input file original name");
 	/*
 	 * Detector parameters
 	 */
 	// DETECTOR / detector
 	if(camera){
-		WRITEKEY(fp, TSTRING, "DETECTOR", camera, "Detector model");
+		WRITEKEY(TSTRING, "DETECTOR", camera, "Detector model");
 	}
 	// SENSOR / sensor
 	if(sensor){
-		WRITEKEY(fp, TSTRING, "SENSOR", sensor, "Camera sensor model");
+		WRITEKEY(TSTRING, "SENSOR", sensor, "Camera sensor model");
 	}
 	// INSTRUME / Instrument
 	if(instrument){
-		WRITEKEY(fp, TSTRING, "INSTRUME", instrument, "Instrument");
+		WRITEKEY(TSTRING, "INSTRUME", instrument, "Instrument");
 	}else
-		WRITEKEY(fp, TSTRING, "INSTRUME", "direct imaging", "Instrument");
+		WRITEKEY(TSTRING, "INSTRUME", "direct imaging", "Instrument");
 	snprintf(buf, 79, "%.g x %.g", pixX, pixY);
 	// PXSIZE / pixel size
-	WRITEKEY(fp, TSTRING, "PXSIZE", buf, "Pixel size in mkm");
+	WRITEKEY(TSTRING, "PXSIZE", buf, "Pixel size in mkm");
 	// XPIXELSZ, YPIXELSZ -- the same
-	WRITEKEY(fp, TDOUBLE, "XPIXELSZ", &pixX, "X pixel size in mkm");
-	WRITEKEY(fp, TDOUBLE, "YPIXELSZ", &pixY, "Y pixel size in mkm");
-	WRITEKEY(fp, TSTRING, "VIEW_FIELD", viewfield, "Camera field of view");
-	// CRVAL1, CRVAL2 / Offset in X, Y
-	if(X0) WRITEKEY(fp, TINT, "CRVAL1", &X0, "Offset in X");
-	if(Y0) WRITEKEY(fp, TINT, "CRVAL2", &Y0, "Offset in Y");
+	WRITEKEY(TDOUBLE, "XPIXELSZ", &pixX, "X pixel size in mkm");
+	WRITEKEY(TDOUBLE, "YPIXELSZ", &pixY, "Y pixel size in mkm");
+	WRITEKEY(TSTRING, "VIEWFLD", viewfield, "Camera field of view");
 	if(exptime == 0) sprintf(buf, "bias");
 	else if(shutter == 0) sprintf(buf, "dark");
 	else if(objtype) strncpy(buf, objtype, 79);
 	else sprintf(buf, "object");
 	// IMAGETYP / object, flat, dark, bias, scan, eta, neon, push
-	WRITEKEY(fp, TSTRING, "IMAGETYP", buf, "Image type");
+	WRITEKEY(TSTRING, "IMAGETYP", buf, "Image type");
 	// DATAMAX, DATAMIN / Max,min pixel value
 	ustmp = ((twelveBit) ? 4095 : 65535);
-	WRITEKEY(fp, TUSHORT, "DATAMAX", &ustmp, "Max pixel value");
+	WRITEKEY(TUSHORT, "DATAMAX", &ustmp, "Max pixel value");
 	ustmp = 0;
-	WRITEKEY(fp, TUSHORT, "DATAMIN", &ustmp, "Min pixel value");
+	WRITEKEY(TUSHORT, "DATAMIN", &ustmp, "Min pixel value");
 	// Some Statistics
-	WRITEKEY(fp, TUSHORT, "STATMAX", &max, "Max data value");
-	WRITEKEY(fp, TUSHORT, "STATMIN", &min, "Min data value");
-	WRITEKEY(fp, TDOUBLE, "STATAVR", &avr, "Average data value");
-	WRITEKEY(fp, TDOUBLE, "STATSTD", &std, "Standart deviation of data value");
+	WRITEKEY(TUSHORT, "STATMAX", &max, "Max data value");
+	WRITEKEY(TUSHORT, "STATMIN", &min, "Min data value");
+	WRITEKEY(TDOUBLE, "STATAVR", &avr, "Average data value");
+	WRITEKEY(TDOUBLE, "STATSTD", &std, "Standart deviation of data value");
 	// Temperatures
-	WRITEKEY(fp, TDOUBLE, "TEMP0", &temperature, "Camera temperature at exp. start (degr C)");
-	WRITEKEY(fp, TDOUBLE, "TEMP1", &t_int, "Camera temperature at exp. end (degr C)");
+	WRITEKEY(TDOUBLE, "TEMP0", &temperature, "Camera temperature at exp. start (degr C)");
+	WRITEKEY(TDOUBLE, "TEMP1", &t_int, "Camera temperature at exp. end (degr C)");
 	if(t_ext > -30.) // there's a hot temp sensor
-		WRITEKEY(fp, TDOUBLE, "TEMPBODY", &t_ext, "Camera body temperature at exp. end (degr C)");
+		WRITEKEY(TDOUBLE, "TEMPBODY", &t_ext, "Camera body temperature at exp. end (degr C)");
 	tmp = (temperature + t_int) / 2. + 273.15;
 	// CAMTEMP / Camera temperature (K)
-	WRITEKEY(fp, TDOUBLE, "CAMTEMP", &tmp, "Camera temperature (K)");
+	WRITEKEY(TDOUBLE, "CAMTEMP", &tmp, "Camera temperature (K)");
 	tmp = (double)exptime / 1000.;
 	// EXPTIME / actual exposition time (sec)
-	WRITEKEY(fp, TDOUBLE, "EXPTIME", &tmp, "actual exposition time (sec)");
+	WRITEKEY(TDOUBLE, "EXPTIME", &tmp, "actual exposition time (sec)");
 	// DATE / Creation date (YYYY-MM-DDThh:mm:ss, UTC)
 	strftime(buf, 79, "%Y-%m-%dT%H:%M:%S", gmtime(&savetime));
-	WRITEKEY(fp, TSTRING, "DATE", buf, "Creation date (YYYY-MM-DDThh:mm:ss, UTC)");
+	WRITEKEY(TSTRING, "DATE", buf, "Creation date (YYYY-MM-DDThh:mm:ss, UTC)");
 	tm_starttime = localtime(&expStartsAt);
 	/*
 	 * startTime = (long)expStartsAt;
@@ -290,7 +234,7 @@ int writefits(char *filename, int width, int height, void *data){
 	 */
 	strftime(buf, 79, "%Y-%m-%dT%H:%M:%S", tm_starttime);
 	// DATE-OBS / DATE OF OBS.
-	WRITEKEY(fp, TSTRING, "DATE-OBS", buf, "DATE OF OBS. (YYYY-MM-DDThh:mm:ss, local)");
+	WRITEKEY(TSTRING, "DATE-OBS", buf, "DATE OF OBS. (YYYY-MM-DDThh:mm:ss, local)");
 	/*
 	 * // START / Measurement start time (local) (hh:mm:ss)
 	 * strftime(buf, 79, "%H:%M:%S", tm_starttime);
@@ -298,30 +242,32 @@ int writefits(char *filename, int width, int height, void *data){
 	 */
 	// OBJECT  / Object name
 	if(objname){
-		WRITEKEY(fp, TSTRING, "OBJECT", objname, "Object name");
+		WRITEKEY(TSTRING, "OBJECT", objname, "Object name");
 	}
 	// BINNING / Binning
 	if(hbin != 1 || vbin != 1){
 		snprintf(buf, 79, "%d x %d", hbin, vbin);
-		WRITEKEY(fp, TSTRING, "BINNING", buf, "Binning (hbin x vbin)");
+		WRITEKEY(TSTRING, "BINNING", buf, "Binning (hbin x vbin)");
 	}
-	WRITEKEY(fp, TINT, "XBIN", &hbin, "Horizontal binning");
-	WRITEKEY(fp, TINT, "YBIN", &vbin, "Vertical binning");
+	WRITEKEY(TINT, "XBIN", &hbin, "Horizontal binning");
+	WRITEKEY(TINT, "YBIN", &vbin, "Vertical binning");
 	// OBSERVER / Observers
 	if(observers){
-		WRITEKEY(fp, TSTRING, "OBSERVER", observers, "Observers");
+		WRITEKEY(TSTRING, "OBSERVER", observers, "Observers");
 	}
 	// PROG-ID / Observation program identifier
 	if(prog_id){
-		WRITEKEY(fp, TSTRING, "PROG-ID", prog_id, "Observation program identifier");
+		WRITEKEY(TSTRING, "PROG-ID", prog_id, "Observation program identifier");
 	}
 	// AUTHOR / Author of the program
 	if(author){
-		WRITEKEY(fp, TSTRING, "AUTHOR", author, "Author of the program");
+		WRITEKEY(TSTRING, "AUTHOR", author, "Author of the program");
 	}
 #ifdef USE_BTA
 	write_bta_data(fp);
 #endif
+	check_wcs();
+	write_list(fp);
 	TRYFITS(fits_write_img, fp, TUSHORT, 1, width * height, data);
 	TRYFITS(fits_close_file, fp);
 	return 0;

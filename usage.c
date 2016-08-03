@@ -21,6 +21,7 @@
 
 #include "usage.h"
 #include "macros.h"
+#include "defhdrs.h"
 
 Apn_Filter Tturret = Apn_Filter_FW50_7S; // turrer type
 int
@@ -43,6 +44,7 @@ char
 	,*author = NULL		// author of program
 	,*subnet = NULL		// subnet for ethernet camera discovery
 	,*cammsgid = NULL	// MSG-ID of camera
+	,*defhdr_filename = NULL // name of file with default headers
 ;
 int
 	 exptime = -1	// exposition time (in ms), -1 means no exposition
@@ -65,7 +67,11 @@ int
 	,flipY = 0		// flip image around Y axe (horizontal flip)
 	,histry = 0		// write history at expositions
 ;
-double temperature = -25.;	// setpoint of temperature
+double
+	 temperature = -25.	// setpoint of temperature
+	,imscale = -1.		// image scale (''/pix) given by user
+;
+
 
 int shutter = 1;	// object frame == 1, dark frame == 0
 
@@ -125,31 +131,37 @@ void usage(char *fmt, ...){
 	}
 	va_end(ap);
 	// "Использование:\t%s [опции] [префикс выходных файлов]\n"
-	printf(_("Usage:\t%s [options] [output files prefix]\n"),
+	printf(_("Usage:\t%s [options] [output files prefix] [additional headers]\n"),
 		__progname);
 	// "\tОпции:\n"
 	printf(_("\tOptions:\n"));
 	printf("\t-A,\t--author=author\t\t%s\n",
 		// "автор программы"
 		_("program author"));
+	printf("\t-b,\t--defhdr=filename\t%s\n",
+		// "имя файла с заголовками по умолчанию"
+		_("file with default headers"));
 	printf("\t-c,\t--cooler-off\t\t%s\n",
 		// "отключить холодильник"
-		_("Set cooler off"));
+		_("set cooler off"));
+	printf("\t-C,\t--imscale\t\t%s\n",
+		// "масштаб изображения без биннинга"
+		_("image scale without binning"));
 	printf("\t-d,\t--dark\t\t\t%s\n",
 		// "не открывать затвор при экспозиции (\"темновые\")"
 		_("not open shutter when exposing (\"dark frames\")"));
 	printf("\t-D,\t--display-image\t\t%s\n",
 		// "Отобразить на экране полученное изображение"
-		_("Display last image"));
+		_("display last image"));
 	printf("\t-E,\t--ether-subnet\t\t%s\n",
 		// "Подсеть для поиска ethernet-камеры"
-		_("Subnet fot ethernet camera discovery"));
+		_("subnet fot ethernet camera discovery"));
 	printf("\t-f,\t--no-flash\t\t%s\n",
 		// "не засвечивать матрицу перед экспозицией"
-		_("Don't flash CCD chip before expose"));
+		_("don't flash CCD chip before expose"));
 	printf("\t-F,\t--fan-speed=F\t\t%s\n",
 		// "Установить скорость вентиляторов в F (0..3)"
-		_("Set fan speed to F (0..3)"));
+		_("set fan speed to F (0..3)"));
 	printf("\t-g,\t--wheel-get\t\t%s\n",
 		// получить сведения о турели
 		_("get turret's parameters"));
@@ -265,7 +277,7 @@ void usage(char *fmt, ...){
 void parse_args(int argc, char **argv){
 	FNAME();
 	int i;
-	char short_options[] = "A:cdDE:fF:gG:H:h:I:i:LlM:N:n:O:o:P:p:Rr:SsTt:v:Ww:x:X:Y:";
+	char short_options[] = "A:b:cC:dDE:fF:gG:H:h:I:i:LlM:N:n:O:o:P:p:Rr:SsTt:v:Ww:x:X:Y:";
 	struct option long_options[] = {
 /*		{ name, has_arg, flag, val }, где:
  * name - name of long parameter
@@ -276,10 +288,12 @@ void parse_args(int argc, char **argv){
  * !!! last string - for zeros !!!
  */
 		{"author",		1,	0,	'A'},
+		{"defhdr",		1,	0,	'b'},
 		{"cooler-off",	0,	0,	'c'},
+		{"imscale",		1,	0,	'C'},
 		{"dark",		0,	0,	'd'},
 		{"display-image",0,	0,	'D'},
-		{"--ether-subnet",1,0,	'E'},
+		{"ether-subnet",1,	0,	'E'},
 		{"no-flash",	0,	0,	'f'},
 		{"fan-speed",	1,	0,	'F'},
 		{"wheel-get",	0,	0,	'g'},
@@ -337,12 +351,22 @@ void parse_args(int argc, char **argv){
 			// "Автор программы: %s"
 			info(_("Program author: %s"), author);
 			break;
+		case 'b':
+			defhdr_filename = strdup(optarg);
+			break;
 		case 'c':
 			only_turret = FALSE;
 			set_T = TRUE;
 			// "отключить холодильник"
 			info(_("Set cooler off"));
 			cooler_off = TRUE;
+			break;
+		case 'C':
+			imscale = atof(optarg);
+			if(imscale < 0.){
+				// "IMSCALE должно быть больше нуля"
+				usage(_("IMSCALE should be greater than zero"));
+			}
 			break;
 		case 'd':
 			shutter = 0;
@@ -427,7 +451,7 @@ void parse_args(int argc, char **argv){
 			break;
 		case 'M':
 				cammsgid = strdup(optarg);
-			info("MSG_ID: %s", cammsgid);
+			info("CAMMSGID: %s", cammsgid);
 			break;
 		case 'N':
 			only_turret = FALSE;
@@ -559,16 +583,18 @@ void parse_args(int argc, char **argv){
 	if(argc == 0){
 		save_image = FALSE;
 	}
-	else{
+	else if(!strchr(argv[0], '=') && !strchr(argv[0], ' ')){ // argv[0] is a filename
 		outfile = argv[0];
 		argc--;
 		argv++;
 	}
-	if(argc > 0){
-		// "Игнорирую аргумент[ы]:\n"
-		printf(_("Ignore argument[s]:\n"));
+	get_defhdrs(defhdr_filename);
+	if(argc > 0){ // additional headers
+		// "Дополнительные заголовки:\n"
+		info(_("Additional headers"));
 		for (i = 0; i < argc; i++)
-			warnx("%s ", argv[i]);
+			info("%s ", argv[i]);
 	}
+	add_morehdrs(argc, argv);
 	if(Shtr != -1) only_turret = FALSE;
 }

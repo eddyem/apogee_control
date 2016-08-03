@@ -29,6 +29,7 @@
 #include <sys/ioctl.h>
 #include <linux/usbdevice_fs.h>
 
+#include "defhdrs.h"
 #include "usage.h"
 #include "camtools.h"
 #ifdef USE_BTA
@@ -44,7 +45,7 @@
 
 #define TMBUFSIZ 40 // time string buffer length
 
-char *pidfilename = "/tmp/takepic.pid"; // pidfile
+char *pidfilename = "/tmp/apogee_control.pid"; // pidfile
 
 char tm_buf[TMBUFSIZ];	// time string buffer
 
@@ -692,6 +693,7 @@ returning:
 		restore_signals();
 		DBG("free buffers & close files");
 		free(buf);
+		free_fits_list();
 		if(f_tlog) fclose(f_tlog);
 		if(f_statlog) fclose(f_statlog);
 #ifdef IMAGEVIEW

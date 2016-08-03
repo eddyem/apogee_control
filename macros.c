@@ -172,15 +172,16 @@ mmapbuf *My_mmap(char *filename){
 	char *ptr;
 	size_t Mlen;
 	struct stat statbuf;
-	if(!filename) ERRX(_("No filename given!"));
+	DBG("Try to mmap %s", filename);
+	if(!filename) return NULL;
 	if((fd = open(filename, O_RDONLY)) < 0)
-		ERR(_("Can't open %s for reading"), filename);
+		return NULL;
 	if(fstat (fd, &statbuf) < 0)
-		ERR(_("Can't stat %s"), filename);
+		return NULL;
 	Mlen = statbuf.st_size;
 	if((ptr = mmap (0, Mlen, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
-		ERR(_("Mmap error for input"));
-	if(close(fd)) ERR(_("Can't close mmap'ed file"));
+		return NULL;
+	if(close(fd)) return NULL;
 	mmapbuf *ret = MALLOC(mmapbuf, 1);
 	ret->data = ptr;
 	ret->len = Mlen;
@@ -189,7 +190,7 @@ mmapbuf *My_mmap(char *filename){
 
 void My_munmap(mmapbuf *b){
 	if(munmap(b->data, b->len))
-		ERR(_("Can't munmap"));
+		WARN(_("Can't munmap"));
 	FREE(b);
 }
 

@@ -61,7 +61,10 @@ extern int
 	,flipY
 	,histry
 ;
-extern double temperature;
+extern double
+	 temperature
+	,imscale
+;
 
 extern bool
 	 only_T
@@ -87,6 +90,7 @@ extern char
 	,*author
 	,*subnet
 	,*cammsgid
+	,*defhdr_filename
 ;
 void usage(char *fmt, ...);
 void parse_args(int argc, char **argv);

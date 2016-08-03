@@ -33,6 +33,8 @@
 #include "camtools.h"
 #include "bta_print.h"
 #include "macros.h"
+#include "usage.h" // command line parameters
+#include "defhdrs.h"
 #include <slamac.h>  // SLA macros
 
 extern void sla_amp(double*, double*, double*, double*, double*, double*);
@@ -51,7 +53,7 @@ void calc_mean(double appRA, double appDecl, double *r, double *d){
 	double ra, dec;
 	appRA *= DS2R;
 	appDecl *= DAS2R;
-	DBG("appRa: %g, appDecl: %g", appRA, appDecl);
+	//DBG("appRa: %g, appDecl: %g", appRA, appDecl);
 	double mjd = JDate - jd0;
 	slaamp(appRA, appDecl, mjd, 2000.0, &ra, &dec);
 	ra *= DR2S;
@@ -60,10 +62,9 @@ void calc_mean(double appRA, double appDecl, double *r, double *d){
 	if(d) *d = dec;
 }
 
-#define CMNTSZ 79
-char comment[CMNTSZ + 1];
-#define CMNT(...) snprintf(comment, CMNTSZ, __VA_ARGS__)
-#define FTKEY(...) WRITEKEY(fp, __VA_ARGS__, comment)
+char comment[FLEN_CARD];
+#define CMNT(...) snprintf(comment, FLEN_CARD, __VA_ARGS__)
+#define FTKEY(...) WRITEKEY(__VA_ARGS__, comment)
 #define WRITEHIST(fp)							\
 do{ if(test_headers){printf("HISTORY: %s\n", comment);}else{	\
 	int status = 0;								\
@@ -140,6 +141,7 @@ BTA_Queue *bta_queue = NULL;
 void write_bta_data(fitsfile *fp){
 	char *val;
 	double dtmp;
+	//char buf[FLEN_CARD];
 	time_t t_now = time(NULL);
 	struct tm *tm_ut, *tm_loc;
 	tm_ut = gmtime(&t_now);
@@ -215,29 +217,33 @@ void write_bta_data(fitsfile *fp){
 	double a2000, d2000;
 	calc_mean(InpAlpha, InpDelta, &a2000, &d2000);
 	CMNT("R.A. given by user (for J2000): %s", time_asc(a2000));
-	FTKEY(TDOUBLE, "INPRA0", &a2000);
+	dtmp = a2000 / 3600.;
+	FTKEY(TDOUBLE, "INPRA0", &dtmp);
 	CMNT("Decl. given by user (for J2000): %s", angle_asc(d2000));
-	FTKEY(TDOUBLE, "INPDEC0", &d2000);
+	dtmp = d2000 / 3600;
+	FTKEY(TDOUBLE, "INPDEC0", &dtmp);
 	calc_mean(CurAlpha, CurDelta, &a2000, &d2000);
 	CMNT("Current R.A. (for J2000): %s", time_asc(a2000));
-	FTKEY(TDOUBLE, "CURRA0", &a2000);
+	dtmp = a2000 / 3600.;
+	FTKEY(TDOUBLE, "CURRA0", &dtmp);
 	CMNT("Current Decl. (for J2000): %s", angle_asc(d2000));
-	FTKEY(TDOUBLE, "CURDEC0", &d2000);
+	dtmp = d2000 / 3600;
+	FTKEY(TDOUBLE, "CURDEC0", &dtmp);
 	// A / Azimuth
 	CMNT("Current object Azimuth: %s", angle_asc(tag_A));
 	dtmp = tag_A / 3600.; FTKEY(TDOUBLE, "A", &dtmp);
 	// Z / Zenith distance
 	CMNT("Current object Zenith: %s", angle_asc(tag_Z));
 	dtmp = tag_Z / 3600.; FTKEY(TDOUBLE, "Z", &dtmp);
-	// ROTANGLE / Field rotation angle
-	CMNT("Field rotation angle: %s", angle_asc(tag_P));
-	dtmp = tag_P / 3600.;FTKEY(TDOUBLE, "ROTANGLE", &dtmp);
+	// PARANGLE / Parallactic angle
+	CMNT("Parallactic  angle: %s", angle_asc(tag_P));
+	dtmp = tag_P / 3600.;FTKEY(TDOUBLE, "PARANGLE", &dtmp);
 
 	CMNT("Telescope A: %s", angle_asc(val_A));
 	dtmp = val_A / 3600.; FTKEY(TDOUBLE, "VAL_A", &dtmp);
 	CMNT("Telescope Z: %s", angle_asc(val_Z));
 	dtmp = val_Z / 3600.; FTKEY(TDOUBLE, "VAL_Z", &dtmp);
-	CMNT("Current P: %s", angle_asc(val_P));
+	CMNT("Current P2 value: %s", angle_asc(val_P));
 	dtmp = val_P / 3600.; FTKEY(TDOUBLE, "VAL_P", &dtmp);
 
 	CMNT("Dome A: %s", angle_asc(val_D));

@@ -3,7 +3,7 @@ This utilite depends on library libapogee & C-wrapper over it
 First, you should install a latest version of libapogee from directory "libapogee"
 or from original site: http://www.randomfactory.com/downloads/
 If you will meet a bug in link stage ("can't find -lboost_regex-mt") cd to directory
-libapogee-[version]/apogee and run 
+libapogee-[version]/apogee and run
 $ sed -i 's/boost_regex-mt/boost_regex/g' Makefile
 after this small fix cd .. and run make again.
 
@@ -34,4 +34,14 @@ By default observatory location is SAO RAS, to change coordinates define:
 *	-DTELLAT=lattitude in degr
 *	-DTELLONG=longitude in degr
 *	-DTELALT=altitude in m
+*	-DTELFOCUS=focal ratio of telescope in metres
 
+
+
+user can store default headers in ~/apogee_hdrs.fits
+user can give additional keys as command line parameters
+to calculate simplest CDx_x coefficients user can give parameter ROT0:
+- for left-handed system it shoud be less than 0 (-360..0)
+      CROTA2 = -ROT0 + PARANGLE - VAL_P
+- for right-handed > 0 (0..360)
+      CROTA2 = ROT0 - PARANGLE + VAL_P
