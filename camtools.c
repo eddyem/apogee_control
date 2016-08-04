@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
  */
-
+#include <float.h> // DBL_EPSILON
 #include "takepic.h"
 #include "camtools.h"
 #include "usage.h"
@@ -168,7 +168,7 @@ int writefits(char *filename, int width, int height, void *data){
 	struct tm *tm_starttime;
 	char buf[80];
 	time_t savetime = time(NULL);
-	fitsfile *fp;
+	fitsfile *fp = NULL;
 	TRYFITS(fits_create_file, &fp, filename);
 	TRYFITS(fits_create_img, fp, USHORT_IMG, 2, naxes);
 	// FILE / Input file original name
@@ -406,12 +406,10 @@ void convert_grayimage(unsigned short *src, GLubyte *dst, int w, int h){
 	}
 	avr /= (double)S;
 	wd = max - min;
-	avr = (avr - min) / wd;	// normal average by preview
-	DBG("stat: avr=%f wd=%f max=%f min=%f", avr, wd, max, min);
-//	avr = -log(avr);		// scale factor
-//	if(avr > 1.) wd /= avr;
+	if(wd > DBL_EPSILON) avr = (avr - min) / wd;	// normal average by preview
 	if(avr < 0.6) wd *= avr + 0.2;
-	DBG("now wd is %f", wd);
+	if(wd < DBL_EPSILON) wd = 1.;
+	DBG("stat: sz=(%dx%d) avr=%g wd=%g max=%g min=%g", w,h,avr, wd, max, min);
 	for(y = 0; y < h; y++){
 		for(x = 0; x < w; x++, dst += 3, src++){
 			gray2rgb(colorfun((*src - min) / wd), dst);

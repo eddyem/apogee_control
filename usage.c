@@ -63,6 +63,7 @@ int
 	,Shtr = -1		// shutter: -1 -- no action or SHUTTER_OPEN/SHUTTER_CLOSE
 	,noclean = 0	// don't flush camera after exp
 	,twelveBit = 0	// 12-bit ADC
+	,fake = 0		// fake image
 	,flipX = 0		// flip image around X axe (vertical flip)
 	,flipY = 0		// flip image around Y axe (horizontal flip)
 	,histry = 0		// write history at expositions
@@ -141,6 +142,9 @@ void usage(char *fmt, ...){
 	printf("\t-b,\t--defhdr=filename\t%s\n",
 		// "имя файла с заголовками по умолчанию"
 		_("file with default headers"));
+	printf("\t-B,\t--observer=obs\t\t%s\n",
+		// "имена наблюдателей"
+		_("observers' names"));
 	printf("\t-c,\t--cooler-off\t\t%s\n",
 		// "отключить холодильник"
 		_("set cooler off"));
@@ -168,63 +172,63 @@ void usage(char *fmt, ...){
 	printf("\t-G,\t--wheel-go=N\t\t%s\n",
 		// переместить турель в N-ю позицию
 		_("set turret to Nth position"));
-	printf("\t-H,\t--time-interval=T\t%s\n",
-		// "интервал времени между последовательными записями в лог и HISTORY (в секундах)"
-		_("time interval between sequential writings to log & HISTORY (in seconds)"));
 	printf("\t-h,\t--hbin=N\t\t%s\n",
 		// "биннинг N пикселей по горизонтали"
 		_("horizontal binning to N pixels"));
-	printf("\t-I,\t--image-type=type\t%s\n",
-		// "тип изображения"
-		_("image type"));
+	printf("\t-H,\t--time-interval=T\t%s\n",
+		// "интервал времени между последовательными записями в лог и HISTORY (в секундах)"
+		_("time interval between sequential writings to log & HISTORY (in seconds)"));
 	printf("\t-i,\t--instrument=instr\t%s\n",
 		// "название прибора"
 		_("instrument name"));
-	printf("\t-L,\t--log-only\t\t%s\n",
-		// "не сохранять изображения, лишь вести запись статистки"
-		_("don't save images, only make all-stat log"));
+	printf("\t-I,\t--image-type=type\t%s\n",
+		// "тип изображения"
+		_("image type"));
 	printf("\t-l,\t--tlog\t\t\t%s\n",
 		// "вести запись рабочих температур в файл temp_log"
 		_("make temperatures logging to file temp_log"));
+	printf("\t-L,\t--log-only\t\t%s\n",
+		// "не сохранять изображения, лишь вести запись статистки"
+		_("don't save images, only make all-stat log"));
 	printf("\t-M,\t--msg-id\t\t%s\n",
 		// "открыть камеру по MSG-ID"
 		_("open camera by its MSG-ID"));
-	printf("\t-N,\t--ncam=N\t\t%s\n",
-		// "работать с N-й камерой"
-		_("work with Nth camera"));
 	printf("\t-n,\t--nframes=N\t\t%s\n",
 		// "N кадров в серии"
 		_("make series of N frames"));
+	printf("\t-N,\t--ncam=N\t\t%s\n",
+		// "работать с N-й камерой"
+		_("work with Nth camera"));
+	printf("\t-o,\t--outfile=prefix\t%s\n",
+		// "префикс имени выходного файла"
+		_("output filename prefix"));
 	printf("\t-O,\t--object=obj\t\t%s\n",
 		// "название объекта"
 		_("object name"));
-	printf("\t-o,\t--observer=obs\t\t%s\n",
-		// "имена наблюдателей"
-		_("observers' names"));
-	printf("\t-P,\t--prog-id=prname\t%s\n",
-		// "название программы наблюдений"
-		_("observing program name"));
 	printf("\t-p,\t--pause-len=ptime\t%s\n",
 		// "выдержать ptime секунд между экспозициями"
 		_("make pause for ptime seconds between expositions"));
+	printf("\t-P,\t--prog-id=prname\t%s\n",
+		// "название программы наблюдений"
+		_("observing program name"));
 	printf("\t-r,\t--speed-set=N\t\t%s\n",
 		// "установить скорость считывания в N"
 		_("set readout speed to N"));
 	printf("\t-R,\t--reset\t\t\t%s\n",
 		// "Полный сброс"
 		_("full reset"));
-	printf("\t-S,\t--sleep\t\t\t%s\n",
-		// "перейти в спящий режим"
-		_("go to sleeping mode"));
 	printf("\t-s,\t--only-stat\t\t%s\n",
 		// "не сохранять изображение, а только отобразить статистику"
 		_("not save image, just show statistics"));
-	printf("\t-T,\t--only-temp\t\t%s\n",
-		// "только задать/получить температуру"
-		_("only set/get temperature"));
+	printf("\t-S,\t--sleep\t\t\t%s\n",
+		// "перейти в спящий режим"
+		_("go to sleeping mode"));
 	printf("\t-t,\t--set-temp=degr\t\t%s\n",
 		// "задать рабочую температуру degr градусов"
 		_("set work temperature to degr C"));
+	printf("\t-T,\t--only-temp\t\t%s\n",
+		// "только задать/получить температуру"
+		_("only set/get temperature"));
 	printf("\t-v,\t--vbin=N\t\t%s\n",
 		// "биннинг N пикселей по вертикали"
 		_("vertical binning to N pixels"));
@@ -244,6 +248,9 @@ void usage(char *fmt, ...){
 		// "выбрать диапазон для считывания"
 		_("select clip region"));
 	// ONLY LONG
+	printf("\t\t--fakeimg\t\t\t%s\n",
+		// "Тест окна OpenGL без получения изображения"
+		_("Test OpenGL window (without image exposure)"));
 	printf("\t\t--flipX\t\t\t%s\n",
 		// "отразить изображение вертикально (относительно оси X)"
 		_("flip image vertically (around X axe)"));
@@ -277,7 +284,7 @@ void usage(char *fmt, ...){
 void parse_args(int argc, char **argv){
 	FNAME();
 	int i;
-	char short_options[] = "A:b:cC:dDE:fF:gG:H:h:I:i:LlM:N:n:O:o:P:p:Rr:SsTt:v:Ww:x:X:Y:";
+	char short_options[] = "A:b:B:cC:dDE:fF:gG:H:h:I:i:LlM:N:n:O:o:P:p:Rr:SsTt:v:Ww:x:X:Y:";
 	struct option long_options[] = {
 /*		{ name, has_arg, flag, val }, где:
  * name - name of long parameter
@@ -289,6 +296,7 @@ void parse_args(int argc, char **argv){
  */
 		{"author",		1,	0,	'A'},
 		{"defhdr",		1,	0,	'b'},
+		{"observers",	1,	0,	'B'},
 		{"cooler-off",	0,	0,	'c'},
 		{"imscale",		1,	0,	'C'},
 		{"dark",		0,	0,	'd'},
@@ -307,8 +315,8 @@ void parse_args(int argc, char **argv){
 		{"msg-id",		1,	0,	'M'},
 		{"ncam",		1,	0,	'N'},
 		{"nframes",		1,	0,	'n'},
+		{"outfile",		1,	0,	'o'},
 		{"object",		1,	0,	'O'},
-		{"observers",	1,	0,	'o'},
 		{"prog-id",		1,	0,	'P'},
 		{"pause-len",	1,	0,	'p'},
 		{"reset",		0,	0,	'R'},
@@ -324,6 +332,7 @@ void parse_args(int argc, char **argv){
 		{"xclip",		1,	0,	'X'},
 		{"yclip",		1,	0,	'Y'},
 		// options, that have no short analogs:
+		{"fakeimg",			0,	&fake,		1},
 		{"flipX",			0,	&flipX,		1},
 		{"flipY",			0,	&flipY,		1},
 		{"noclean",			0,	&noclean,	1},
@@ -353,6 +362,11 @@ void parse_args(int argc, char **argv){
 			break;
 		case 'b':
 			defhdr_filename = strdup(optarg);
+			break;
+		case 'B':
+			observers = strdup(optarg);
+			// "Наблюдатели: %s"
+			info(_("Observers: %s"), observers);
 			break;
 		case 'c':
 			only_turret = FALSE;
@@ -470,15 +484,15 @@ void parse_args(int argc, char **argv){
 			// "Серия из %d кадров"
 			info(_("Series of %d frames"), pics);
 			break;
+		case 'o':
+			outfile = strdup(optarg);
+			// "Префикс выходного файла"
+			info(_("Output filename prefix: %s"), outfile);
+			break;
 		case 'O':
 			objname = strdup(optarg);
 			// "Имя объекта - %s"
 			info(_("Object name - %s"), objname);
-			break;
-		case 'o':
-			observers = strdup(optarg);
-			// "Наблюдатели: %s"
-			info(_("Observers: %s"), observers);
 			break;
 		case 'P':
 			prog_id = strdup(optarg);
@@ -578,23 +592,22 @@ void parse_args(int argc, char **argv){
 		usage(NULL);
 		}
 	}
-	argc -= optind;
-	argv += optind;
-	if(argc == 0){
+	if(fake){
+		only_turret = FALSE;
 		save_image = FALSE;
 	}
-	else if(!strchr(argv[0], '=') && !strchr(argv[0], ' ')){ // argv[0] is a filename
-		outfile = argv[0];
-		argc--;
-		argv++;
+	argc -= optind;
+	argv += optind;
+	if(outfile == NULL){
+		save_image = FALSE;
 	}
 	get_defhdrs(defhdr_filename);
 	if(argc > 0){ // additional headers
-		// "Дополнительные заголовки:\n"
-		info(_("Additional headers"));
+		// "Дополнительные заголовки: "
+		info(_("Additional headers: "));
 		for (i = 0; i < argc; i++)
 			info("%s ", argv[i]);
+		add_morehdrs(argc, argv);
 	}
-	add_morehdrs(argc, argv);
 	if(Shtr != -1) only_turret = FALSE;
 }

@@ -37,6 +37,8 @@ void processKeybrd(unsigned char key, int mod, int win_GL_ID, _U_ int x, _U_ int
 		case 27:
 			destroyWindow_async(win_GL_ID);
 		break;
+/*		case 'x':
+		break;*/
 		case 'Z':
 			win->zoom *= 1.1;
 			calc_win_props(win, NULL, NULL);
@@ -67,6 +69,11 @@ void keySpPressed(_U_ int key, _U_ int x, _U_ int y){
 	DBG("Sp. key pressed. mod=%d, keycode=%d, point=(%d,%d)\n", glutGetModifiers(), key, x,y);
 }
 
+// in defhdrs.c
+extern void calc_coords(float x, float y, double *alpha, double *delta);
+extern char *time_asc(double t);
+extern char *angle_asc(double a);
+
 int oldx, oldy;         // coordinates when mouse was pressed
 int movingwin = 0; // ==1 when user moves image by middle button
 void mousePressed(_U_ int key, _U_ int state, _U_ int x, _U_ int y){
@@ -78,8 +85,16 @@ void mousePressed(_U_ int key, _U_ int state, _U_ int x, _U_ int y){
 	if(state == GLUT_DOWN){
 		oldx = x; oldy = y;
 		float X,Y;
+		double RA, D;
 		conv_mouse_to_image_coords(x,y,&X,&Y,win);
 		DBG("press in (%d, %d) == (%f, %f) on image; mod == %d", x,y,X,Y, mod);
+		calc_coords(X, Y, &RA, &D);
+		printf("x = %f, y= %f", X, Y);
+		/// "Задайте WCS параметры, по крайней мере ROT0, CRPIX1 и CRPIX2"
+		if(RA > 4e6){
+			printf("\n");
+			WARNX(_("Give WCS parameters, at least ROT0, CRPIX1 and CRPIX2"));
+		}else printf(", ra = %s, dec=%s\n", angle_asc(RA), time_asc(D));
 		if(key == GLUT_MIDDLE_BUTTON) movingwin = 1;
 		if(key == 3){ // wheel UP
 			if(mod == 0) win->y += 10.*win->zoom; // nothing pressed - scroll up
@@ -94,47 +109,20 @@ void mousePressed(_U_ int key, _U_ int state, _U_ int x, _U_ int y){
 	}else{
 		movingwin = 0;
 	}
-/*	DBG("Mouse button %s. point=(%d, %d); mod=%d, button=%d\n",
-		(state == GLUT_DOWN)? "pressed":"released", x, y, glutGetModifiers(), key);*/
+}
 
-/*	int window = glutGetWindow();
-	if(window == WaveWindow){ // щелкнули в окне с вейвлетом
-		_U_ int w = glutGet(GLUT_WINDOW_WIDTH) / 2;
-		_U_ int h = glutGet(GLUT_WINDOW_HEIGHT) / 2;
-		if(state == GLUT_DOWN && key == GLUT_LEFT_BUTTON){
-			//HistCoord[0] = (x > w);
-			//HistCoord[1] = (y > h);
-		}
-	}
-*/
-}
-/* this doesn't work
-void mouseWheel(int button, int dir, int x, int y){
-	int window = glutGetWindow();
-	windowData *win = searchWindow_byGLID(window);
-	if(!win) return;
-	DBG("Mouse wheel, dir: %d. point=(%d, %d); mod=%d, button=%d\n",
-		dir, x, y, glutGetModifiers(), button);
-}
-*/
 void mouseMove(_U_ int x, _U_ int y){
 	int window = glutGetWindow();
 	windowData *win = searchWindow_byGLID(window);
 	if(!win) return;
-	//DBG("Mouse moved to (%d, %d)\n", x, y);
 	if(movingwin){
-		float X, Y, nx, ny;//, w2, h2;
+		float X, Y, nx, ny;
 		float a = win->Daspect;
 		X = (x - oldx) * a; Y = (y - oldy) * a;
 		nx = win->x + X;
 		ny = win->y - Y;
-//		w2 = win->image->w / 2. * win->zoom;
-//		h2 = win->image->h / 2. * win->zoom;
-
-	//	if(nx < w2 && nx > -w2)
-			win->x = nx;
-	//	if(ny < h2 && ny > -h2)
-			win->y = ny;
+		win->x = nx;
+		win->y = ny;
 		oldx = x;
 		oldy = y;
 		calc_win_props(win, NULL, NULL);
@@ -162,6 +150,7 @@ void createMenu(int GL_ID){
 	glutAddMenuEntry("Quit (ctrl+q)", 'q');
 	glutAddMenuEntry("Close this window (ESC)", 27);
 	glutAddMenuEntry("Restore zoom (1)", '1');
+//	glutAddMenuEntry("Make exposition (x)", 'x');
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 

@@ -57,6 +57,7 @@ extern int
 	,Shtr
 	,noclean
 	,twelveBit
+	,fake
 	,flipX
 	,flipY
 	,histry

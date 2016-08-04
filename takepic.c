@@ -285,7 +285,7 @@ wheelret:
 }
 
 #ifdef IMAGEVIEW
-void change_displayed_image(_U_ unsigned short *buf, windowData *win){
+void change_displayed_image(unsigned short *buf, windowData *win){
 	FNAME();
 	if(!win) return;
 	pthread_mutex_lock(&win->mutex);
@@ -307,23 +307,15 @@ int main(int argc, char **argv){
 	FILE *f_statlog = NULL; // stat file
 	int roih=0, roiw=0, osh=0, osw=0, binh=0, binw=0, shtr=0; // camera parameters
 	char  whynot[BUFF_SIZ]; // temporary buffer for error texts
-	int imW=0, imH=0; // real (with binning) image size
+	int imW=1024, imH=1024; // real (with binning) image size
 	unsigned short *buf = NULL; // image buffer
 	double mintemp=0.;
 #ifdef IMAGEVIEW
-	_U_ windowData *mainwin = NULL;
-	_U_ rawimage im;
+	windowData *mainwin = NULL;
+	rawimage im;
 #endif
 
 	initial_setup(); // setup for macros.c
-	//setlocale(LC_ALL, getenv("LC_ALL"));
-/*	setlocale(LC_ALL, "");
-	setlocale(LC_NUMERIC, "C");
-	bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
-	//bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
-	textdomain(GETTEXT_PACKAGE);
-*/
-
 	parse_args(argc, argv);
 
 	catch_signals();
@@ -334,7 +326,9 @@ int main(int argc, char **argv){
 		writefits(NULL, imW, imH, NULL);
 		return(0);
 	}
-
+	if(fake) test_headers = 1;
+// Begin of non-fake block ------->
+	if(!fake){
 	// Turret block
 	if(open_turret) parse_turret_args();
 	if(only_turret){
@@ -515,6 +509,7 @@ DBG("open %d", Ncam);
 		ERR("Can't set readout parameters: %s", whynot);
 		goto returning;
 	}
+	} // <------ end of non-fake block
 	DBG("geomery: %dx%d", imW, imH);
 	int L = imW*imH;
 	buf = (unsigned short*) calloc(L, sizeof(unsigned short));
@@ -524,7 +519,7 @@ DBG("open %d", Ncam);
 	}
 #ifdef IMAGEVIEW
 	// start image view module if not need to save image or manually defined displaying
-	if(!save_image || show_image){
+	if(fake || !save_image || show_image){
 		imageview_init();
 		im.protected = 1;
 		im.rawdata = MALLOC(GLubyte, imW*imH*3);
@@ -532,6 +527,7 @@ DBG("open %d", Ncam);
 		im.w = imW; im.h = imH;
 	}
 #endif
+	if(fake) pics = 0;
 	DBG("start %d expositions", pics);
 	for (i = 0; i < pics; i++){
 		DBG("spd");
@@ -627,18 +623,13 @@ DBG("open %d", Ncam);
 				fprintf(f_statlog, "%s\t%ld\t%g\t%.2f\t%.2f\t", tm_buf,
 					time(NULL), E, t_int, t_ext);
 			print_stat(buf, L, f_statlog);
-			inline void WRITEIMG(int (*writefn)(char*,int,int,void*), char *ext){
-				if(!check_filename(whynot, outfile, ext))
-					// "Не могу сохранить файл"
-					err(1, _("Can't save file"));
-				else{
-					int r = writefn(whynot, imW, imH, buf);
-					// "Файл записан в '%s'"
-					if (r == 0) info(_("File saved as '%s'"), whynot);
-				}
-			}
 #ifdef IMAGEVIEW
 			if(!save_image || show_image){
+				// build  FITS headers tree for viewer
+				#ifdef USE_BTA
+				write_bta_data(NULL);
+				#endif
+				check_wcs();
 				if(!get_windows_amount() || !mainwin){
 					mainwin = createGLwin("Sample window", 400, 400, &im);
 					if(!mainwin){
@@ -654,6 +645,16 @@ DBG("open %d", Ncam);
 				change_displayed_image(buf, mainwin);
 			}
 #endif
+			inline void WRITEIMG(int (*writefn)(char*,int,int,void*), char *ext){
+				if(!check_filename(whynot, outfile, ext))
+					// "Не могу сохранить файл"
+					err(1, _("Can't save file"));
+				else{
+					int r = writefn(whynot, imW, imH, buf);
+					// "Файл записан в '%s'"
+					if (r == 0) info(_("File saved as '%s'"), whynot);
+				}
+			}
 			if(save_image){
 				DBG("save image");
 				#ifdef USERAW
@@ -682,20 +683,40 @@ DBG("open %d", Ncam);
 		}
 		fflush(NULL);
 	}
+#ifdef IMAGEVIEW
+	if(fake){
+		writefits(NULL, imW, imH, NULL);
+		if(!get_windows_amount() || !mainwin){
+			mainwin = createGLwin("Sample window", 400, 400, &im);
+			if(!mainwin){
+				// "Не могу открыть окно OpenGL, просмотр будет недоступен!"
+				info(_("Can't open OpenGL window, image preview will be inaccessible"));
+			}else{
+				mainwin->killthread = 1;
+			}
+		}
+		if(get_windows_amount() && mainwin){
+			DBG("change image");
+			change_displayed_image(buf, mainwin);
+		}
+	}
+#endif
 returning:
 	if(!only_turret){
-		// set fan speed to 0 or 3 according cooler status
-		AutoadjustFanSpeed(TRUE);
-		DBG("abort exp");
-		ApnGlueExpAbort();
-		DBG("close");
-		ApnGlueClose();
-		restore_signals();
-		DBG("free buffers & close files");
-		free(buf);
-		free_fits_list();
-		if(f_tlog) fclose(f_tlog);
-		if(f_statlog) fclose(f_statlog);
+		if(!fake){
+			// set fan speed to 0 or 3 according cooler status
+			AutoadjustFanSpeed(TRUE);
+			DBG("abort exp");
+			ApnGlueExpAbort();
+			DBG("close");
+			ApnGlueClose();
+			restore_signals();
+			DBG("free buffers & close files");
+			free(buf);
+			free_fits_list();
+			if(f_tlog) fclose(f_tlog);
+			if(f_statlog) fclose(f_statlog);
+		}
 #ifdef IMAGEVIEW
 		DBG("test for GL window");
 		if(mainwin){ //window was created - wait for manual close

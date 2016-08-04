@@ -45,3 +45,6 @@ to calculate simplest CDx_x coefficients user can give parameter ROT0:
       CROTA2 = -ROT0 + PARANGLE - VAL_P
 - for right-handed > 0 (0..360)
       CROTA2 = ROT0 - PARANGLE + VAL_P
+
+
+WARNING! Since 4.08.2016 filename prefix should be pointed by -o flag!

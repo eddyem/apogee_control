@@ -333,7 +333,7 @@ int push_param(){
 
 void write_bta_queue(fitsfile *fp){
 #define HISTRY(...) do{CMNT(__VA_ARGS__); WRITEHIST(fp);}while(0)
-	if(!bta_queue) return;
+	if(!bta_queue || !fp) return;
 	BTA_Queue *cur = bta_queue, *ptr;
 	BTA_PARAMS *P;
 	int i = 0;

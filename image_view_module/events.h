@@ -37,6 +37,5 @@ void mousePressed(int key, int state, int x, int y);
 void mouseMove(int x, int y);
 void createMenu(int window);
 void menuEvents(int opt);
-//void mouseWheel(int button, int dir, int x, int y);
 
 #endif // __EVENTS_H__

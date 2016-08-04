@@ -122,9 +122,9 @@ KeyList *list_add_record(KeyList **list, char *rec, int immutable){
 	if((node = (KeyList*) MALLOC(KeyList, 1)) == 0)  return NULL; // allocation error
 	node->record = strdup(rec); // insert data
 	node->immutable = immutable;
-	DBG("add record %s", rec);
+	//DBG("add record %s", rec);
 	if(!node->record){
-		/// "п²п╣ п╪п╬пЁя┐ я│п╨п╬п©п╦я─п╬п╡п╟я┌я▄ п╢п╟п╫п╫я▀п╣"
+		/// "Не могу скопировать данные"
 		WARNX(_("Can't copy data"));
 		return NULL;
 	}
@@ -329,6 +329,7 @@ void write_list(fitsfile *fp){
 	}
 }
 
+static int wcs_rdy = 0;
 /**
  * Check if user tell some information about WCS and add it into headers
  */
@@ -350,8 +351,8 @@ void check_wcs(){
 	cnt += getdoubleval(&cd, FITS_keys, "CD1_1");
 	cnt += getdoubleval(&crot, FITS_keys, "CROTA2");
 	cnt += getdoubleval(&rot0, FITS_keys, "ROT0");
-	DBG("cnt = %d", cnt);
 	if(!cnt) return;
+	wcs_rdy = 1;
 	int wcs = 2;
 	WRITEKEY(TINT, "WCSAXIS", &wcs, "Number of WCS axes");
 	WRITEKEY(TSTRING, "CTYPE1", "RA---TAN", "RA-Gnomic projection");
@@ -418,7 +419,6 @@ void check_wcs(){
 	double s, c, scx = imscale / 3600. * hbin, scy = imscale / 3600. * vbin;
 	if(rot0 < 0){ // left-handed
 		crot = (-rot0 + parangle - rotangle)*M_PI/180;
-		DBG("crot = %g", crot*180/M_PI);
 		sincos(crot, &s, &c);
 		CD[0][0] = -scx * c; CD[0][1] = scy * s;
 		CD[1][0] = scx * s; CD[1][1] = scy * c;
@@ -432,4 +432,14 @@ void check_wcs(){
 	WRITEKEY(TDOUBLE, "CD1_2", &CD[0][1], "rotation matrix coefficient [1,2]");
 	WRITEKEY(TDOUBLE, "CD2_1", &CD[1][0], "rotation matrix coefficient [2,1]");
 	WRITEKEY(TDOUBLE, "CD2_2", &CD[1][1], "rotation matrix coefficient [2,2]");
+}
+
+// function for events.c - recalculate coordinates on image into WCS
+void calc_coords(float x, float y, double *alpha, double *delta){
+	double ra, dec, dx = x - crpix1, dy = y - crpix2;
+	if(!wcs_rdy){*alpha = 5e6; *delta = 5e6; return; }
+	ra = crval1 + dx * CD[0][0] + dy * CD[0][1];
+	dec = crval2 + dx * CD[1][0] + dy * CD[1][1];
+	if(alpha) *alpha = ra * 3600.; // hrsec
+	if(delta) *delta = dec * 3600.; // arcsec
 }

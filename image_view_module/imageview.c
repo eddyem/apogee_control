@@ -80,28 +80,20 @@ void createWindow(windowData *win){
 	glutDisplayFunc(RedrawWindow);
 	glutKeyboardFunc(keyPressed);
 	glutSpecialFunc(keySpPressed);
-	//glutMouseWheelFunc(mouseWheel);
 	glutMouseFunc(mousePressed);
 	glutMotionFunc(mouseMove);
-	//glutIdleFunc(glutPostRedisplay);
 	glutIdleFunc(NULL);
 	DBG("init textures");
 	glGenTextures(1, &(win->Tex));
 	win->zoom = 1.;
-//	calc_win_props(win, NULL, NULL);
-//	win->zoom = 1. / win->Daspect;
-//	DBG("Daspect: %g, zoom: %g", win->Daspect, win->zoom);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, win->Tex);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
    	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, win->image->w, win->image->h, 0,
 			GL_RGB, GL_UNSIGNED_BYTE, win->image->rawdata);
 	glDisable(GL_TEXTURE_2D);
@@ -194,19 +186,6 @@ void redisplay(int GL_ID){
 	glutPostRedisplay();
 }
 
-/*
-		if(redraw)
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h,
-					GL_LUMINANCE, GL_FLOAT, ptro); // s/image->data/tex/
-		else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h,
-					0, GL_LUMINANCE, GL_FLOAT, ptro);
-	//glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-*/
-
 void RedrawWindow(){
 	if(!initialized) return;
 	int window;
@@ -218,7 +197,6 @@ void RedrawWindow(){
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-	//glTranslatef(win->x-w/2., win->y-h/2., win->z);
 	glTranslatef(win->x, win->y, 0.);
 	glScalef(-win->zoom, -win->zoom, 1.);
 	glEnable(GL_TEXTURE_2D);
@@ -229,14 +207,6 @@ void RedrawWindow(){
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, win->image->rawdata);
 		win->image->changed = 0;
 	}
-/*
-	glBegin(GL_QUADS);
-	glTexCoord2f(0., 1.); glVertex3f(0., 0., 0.);
-	glTexCoord2f(0., 0.); glVertex3f(0.,h, 0.);
-	glTexCoord2f(1., 0.); glVertex3f(w, h, 0.);
-	glTexCoord2f(1., 1.); glVertex3f(w, 0., 0.);
-	glEnd();
-*/
 	w /= 2.; h /= 2.;
 	glBegin(GL_QUADS);
 		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w, -h );
@@ -255,10 +225,6 @@ void RedrawWindow(){
  * waits for global signals to create windows & make other actions
  */
 void *Redraw(_U_ void *arg){
-//	pthread_cond_t fakeCond = PTHREAD_COND_INITIALIZER;
-//	struct timeval tv;
-//	struct timespec timeToWait;
-//	struct timeval now;
 	while(1){
 		pthread_mutex_lock(&winini_mutex);
 		if(!initialized){
@@ -279,22 +245,8 @@ void *Redraw(_U_ void *arg){
 			wannakill_GL_ID = 0;
 		}
 		forEachWindow(redisplay);
-/*		gettimeofday(&now,NULL);
-		timeToWait.tv_sec = now.tv_sec;
-		timeToWait.tv_nsec = now.tv_usec * 1000UL + 10000000UL;
-		pthread_cond_timedwait(&fakeCond, &winini_mutex, &timeToWait);*/
 		pthread_mutex_unlock(&winini_mutex);
-		//pthread_testcancel();
 		if(totWindows) glutMainLoopEvent(); // process actions if there are windows
-/*		gettimeofday(&now,NULL);
-		timeToWait.tv_sec = now.tv_sec;
-		timeToWait.tv_nsec = now.tv_usec * 1000UL + 10000000UL;
-		pthread_mutex_lock(&fakeMutex);
-		pthread_cond_timedwait(&fakeCond, &fakeMutex, &timeToWait);
-		pthread_mutex_unlock(&fakeMutex);*/
-/*		tv.tv_sec = 0;
-		tv.tv_usec = 10000;
-		select(0, NULL, NULL, NULL, &tv);*/
 		usleep(10000);
 	}
 	return NULL;
@@ -305,22 +257,15 @@ void Resize(int width, int height){
 	int window = glutGetWindow();
 	windowData *win = searchWindow_byGLID(window);
 	if(!win) return;
-/*	int GRAB_WIDTH = win->w, GRAB_HEIGHT = win->h;
-	float _U_ tmp, wd = (float) width/GRAB_WIDTH, ht = (float)height/GRAB_HEIGHT;
-	tmp = (wd + ht) / 2.;
-	width = (int)(tmp * GRAB_WIDTH); height = (int)(tmp * GRAB_HEIGHT);*/
 	glutReshapeWindow(width, height);
 	win->w = width;
 	win->h = height;
 	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	//GLfloat W = (GLfloat)GRAB_WIDTH; GLfloat H = (GLfloat)GRAB_HEIGHT;
 	GLfloat W, H;
 	calc_win_props(win, &W, &H);
 	glOrtho(-W,W, -H,H, -1., 1.);
-//	gluPerspective(90., W/H, 0., 100.0);
-//	gluLookAt(0., 0., H/2., 0., 0., 0., 0., 1., 0.);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 }
@@ -389,11 +334,12 @@ void imageview_init(){
 	int c = 1;
 	static int glutnotinited = 1;
 	if(initialized){
-		// "пёп╤п╣ п╦п╫п╦я├п╦п╟п╩п╦п╥п╦я─п╬п╡п╟п╫п╬!"
+		// "Уже инициализировано!"
 		WARNX(_("Already initialized!"));
 		return;
 	}
 	if(glutnotinited){
+		DBG("init");
 		XInitThreads(); // we need it for threaded windows
 		glutInit(&c, v);
 		glutnotinited = 0;
@@ -419,12 +365,10 @@ void clear_GL_context(){
 	initialized = 0;
 	DBG("locked");
 	 // kill main GLUT thread
-//	pthread_cancel(GLUTthread);
 	pthread_mutex_unlock(&winini_mutex);
 	forEachWindow(killwindow_v);
 	DBG("join");
 	pthread_join(GLUTthread, NULL); // wait while main thread exits
-//	pthread_mutex_unlock(&winini_mutex);
 	DBG("main GL thread cancelled");
 }
 
