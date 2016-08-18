@@ -94,7 +94,10 @@ void mousePressed(_U_ int key, _U_ int state, _U_ int x, _U_ int y){
 		if(RA > 4e6){
 			printf("\n");
 			WARNX(_("Give WCS parameters, at least ROT0, CRPIX1 and CRPIX2"));
-		}else printf(", ra = %s, dec=%s\n", angle_asc(RA), time_asc(D));
+		}else{
+			printf(", ra = %s", angle_asc(RA));
+			printf(", dec=%s\n", time_asc(D));
+		}
 		if(key == GLUT_MIDDLE_BUTTON) movingwin = 1;
 		if(key == 3){ // wheel UP
 			if(mod == 0) win->y += 10.*win->zoom; // nothing pressed - scroll up

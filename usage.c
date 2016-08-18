@@ -248,7 +248,7 @@ void usage(char *fmt, ...){
 		// "выбрать диапазон для считывания"
 		_("select clip region"));
 	// ONLY LONG
-	printf("\t\t--fakeimg\t\t\t%s\n",
+	printf("\t\t--fakeimg\t\t%s\n",
 		// "Тест окна OpenGL без получения изображения"
 		_("Test OpenGL window (without image exposure)"));
 	printf("\t\t--flipX\t\t\t%s\n",

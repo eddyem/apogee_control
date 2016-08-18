@@ -29,8 +29,9 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} IMSOURCES)
 find_package(PkgConfig REQUIRED)
 find_package(OpenGL)
 find_package(GLUT)
+find_package(X11)
 
-if(NOT GLUT_FOUND OR NOT OPENGL_FOUND)
+if(NOT GLUT_FOUND OR NOT OPENGL_FOUND OR NOT X11_FOUND)
 	message("GLUT library not found, image view won't be available")
 else()
 # exe file
@@ -145,6 +146,6 @@ endif(NOT DEFINED STANDALONE)
 target_link_libraries(${IMLIB} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} -lm -lpthread)
 include_directories(${${IMLIB}_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${GLUT_INCLUDE_DIR} ..)
 link_directories(${${IMLIB}_LIBRARY_DIRS})
-endif(NOT GLUT_FOUND OR NOT OPENGL_FOUND)
+endif(NOT GLUT_FOUND OR NOT OPENGL_FOUND OR NOT X11_FOUND)
 
 

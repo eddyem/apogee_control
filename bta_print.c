@@ -93,12 +93,14 @@ static char buf[1024];
 char *time_asc(double t){
 	int h, m;
 	double s;
+	char *str = "";
 	h   = (int)(t/3600.);
+	if(t < 0.){ t = -t; str = "-";}
 	m = (int)((t - (double)h*3600.)/60.);
 	s = t - (double)h*3600. - (double)m*60.;
 	h %= 24;
 	if(s>59) s=59;
-	sprintf(buf, "%dh:%02dm:%04.1fs", h,m,s);
+	sprintf(buf, "%s%dh:%02dm:%04.1fs", str, h,m,s);
 	return buf;
 }
 

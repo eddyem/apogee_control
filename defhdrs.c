@@ -440,6 +440,8 @@ void calc_coords(float x, float y, double *alpha, double *delta){
 	if(!wcs_rdy){*alpha = 5e6; *delta = 5e6; return; }
 	ra = crval1 + dx * CD[0][0] + dy * CD[0][1];
 	dec = crval2 + dx * CD[1][0] + dy * CD[1][1];
+	DBG("ra=%g, dec=%g", ra,dec);
 	if(alpha) *alpha = ra * 3600.; // hrsec
 	if(delta) *delta = dec * 3600.; // arcsec
+	DBG("ra=%g, dec=%g", *alpha, *delta);
 }

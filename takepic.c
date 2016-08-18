@@ -196,7 +196,7 @@ void check4running(){
 		file = open(path, O_RDONLY);
 		if(file == -1) return 0;
 		do{
-			read(file, &byte, 1);
+			if(read(file, &byte, 1) != 1) break;
 			if (byte != '/') *pp++ = byte;
 			else pp = name;
 		}
@@ -218,13 +218,14 @@ void check4running(){
 	self = getpid(); // self PID
 	if(stat(pidfilename, &s_buf) == 0){ // PID file exists
 		pidfile = fopen(pidfilename, "r");
-		fscanf(pidfile, "%d", &run); // get PID of (possibly) running process
-		fclose(pidfile);
-		if(readname(name, run) && strncmp(name, myname, 255) == 0){
+		if(1 == fscanf(pidfile, "%d", &run)){ // get PID of (possibly) running process
+			if(readname(name, run) && strncmp(name, myname, 255) == 0){
 			// "Обнаружен работающий процесс (pid=%d), выход.\n"
 			ERR(_("\nFound running process (pid=%d), exit.\n"), run);
 			exit(7);
+			}
 		}
+		fclose(pidfile);
 	}
 	// there's no PID file or it's old
 	readname(myname, self); // self name
