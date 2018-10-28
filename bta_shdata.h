@@ -917,7 +917,7 @@ static int get_shm_block( struct SHM_Block *sb, int server) {
       return 0;
    }
    if(server) {
-      if((shmctl(sb->id, SHM_LOCK, NULL) < 0) < 0) {
+      if(shmctl(sb->id, SHM_LOCK, NULL) < 0) {
 	 char msg[80];
 	 sprintf(msg,"Can't prevents swapping of shared memory segment '%s'",sb->key.name);
 	 perror(msg);

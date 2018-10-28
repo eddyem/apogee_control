@@ -294,7 +294,7 @@ int writepng(char *filename, int width, int height, void *data){
 		goto done;
 	}
 	png_init_io(pngptr, fp);
-	png_set_compression_level(pngptr, Z_BEST_COMPRESSION);
+	png_set_compression_level(pngptr, 6);
 	png_set_IHDR(pngptr, infoptr, width, height, 16, PNG_COLOR_TYPE_GRAY,
 				PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
 				PNG_FILTER_TYPE_DEFAULT);

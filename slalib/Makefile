@@ -41,4 +41,4 @@ clean:
 install:
 	cp sla.pc /usr/share/pkgconfig
 	cp libsla$(LIBSUFFIX) /usr/lib
-	cp slamac.h /usr/include
+	cp slamac.h slalib.h /usr/include
