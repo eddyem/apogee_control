@@ -22,6 +22,40 @@
 #include "imageview.h"
 #include "macros.h"
 
+static char buf[1024];
+static char *time_asc(double t){
+    int h, m;
+    double s;
+    char *str = "";
+    h   = (int)(t/3600.);
+    if(t < 0.){ t = -t; str = "-";}
+    m = (int)((t - (double)h*3600.)/60.);
+    s = t - (double)h*3600. - (double)m*60.;
+    h %= 24;
+    if(s>59) s=59;
+    sprintf(buf, "%s%dh:%02dm:%04.1fs", str, h,m,s);
+    return buf;
+}
+
+static char *angle_asc(double a){
+    char s;
+    int d, min;
+    double sec;
+    if (a >= 0.)
+        s = '+';
+    else{
+        s = '-'; a = -a;
+    }
+    d   = (int)(a/3600.);
+    min = (int)((a - (double)d*3600.)/60.);
+    sec = a - (double)d*3600. - (double)min*60.;
+    d %= 360;
+    if(sec>59.9) sec=59.9;
+    sprintf(buf, "%c%d:%02d':%04.1f''", s,d,min,sec);
+    return buf;
+}
+
+
 /**
  * manage pressed keys & menu items
  */
@@ -71,8 +105,6 @@ void keySpPressed(_U_ int key, _U_ int x, _U_ int y){
 
 // in defhdrs.c
 extern void calc_coords(float x, float y, double *alpha, double *delta);
-extern char *time_asc(double t);
-extern char *angle_asc(double a);
 
 int oldx, oldy;         // coordinates when mouse was pressed
 int movingwin = 0; // ==1 when user moves image by middle button

@@ -362,16 +362,12 @@ DBG("open %d", Ncam);
     char *msg = NULL;
     char *findnm(const char *nm){
         char *f = strstr(msg, nm);
-        DBG("f=%s", f);
         if(!f) return NULL;
         f += strlen(nm);
-        DBG("f=%s", f);
         char *e = strchr(f, '\n');
-        DBG("e=%s", e);
         size_t l = (e) ? (size_t)(e-f) : strlen(f);
         char *r = MALLOC(char, l+1);
         snprintf(r, l, f);
-        DBG("r=%s", r);
         return r;
     }
     msg = ApnGlueGetInfo(&pid, &vid);
