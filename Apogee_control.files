@@ -1,0 +1,16 @@
+airmass.c
+am.c
+bta_print.c
+bta_print.h
+bta_shdata.c
+bta_shdata.h
+camtools.c
+camtools.h
+defhdrs.c
+defhdrs.h
+macros.c
+macros.h
+takepic.c
+takepic.h
+usage.c
+usage.h

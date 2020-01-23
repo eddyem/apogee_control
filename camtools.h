@@ -23,17 +23,20 @@
 #ifndef __CAMTOOLS_H__
 #define __CAMTOOLS_H__
 
+#include <fitsio.h>
+#include <stdbool.h>
+
 #define TRYFITS(f, ...)						\
 do{if(!test_headers){ int status = 0;		\
-	f(__VA_ARGS__, &status);				\
-	if (status){							\
-		fits_report_error(stderr, status);	\
-		return -1;}							\
+    f(__VA_ARGS__, &status);				\
+    if (status){							\
+        fits_report_error(stderr, status);	\
+        return -1;}							\
 }}while(0)
 #define WRITEKEY(...)	do{add_fits_header(__VA_ARGS__);}while(0)
 
 void print_fits_header(fitsfile *fptr, int datatype, char *keyname,
-						void *value, char *comment);
+                        void *value, char *comment);
 
 extern char *camera, *sensor, viewfield[];
 extern double pixX, pixY, t_ext, t_int;
@@ -42,7 +45,7 @@ extern double avr, std;
 extern time_t expStartsAt;
 
 
-void AutoadjustFanSpeed(bool onoff);
+//void AutoadjustFanSpeed(bool onoff);
 double printCoolerStat(double *t_ext);
 
 void print_stat(unsigned short *img, long size, FILE* f);
@@ -57,16 +60,16 @@ int writeraw(char *filename, int width, int height, void *data);
 #endif // USERAW
 
 #ifdef IMAGEVIEW
-#include <GL/glut.h>
-#include <GL/glext.h>
 #include <GL/freeglut.h>
+#include <GL/glext.h>
+#include <GL/glut.h>
 #include <math.h>
 
 // functions for converting grayscale value into colour
 typedef enum{
-	COLORFN_LINEAR, // linear
-	COLORFN_LOG,    // ln
-	COLORFN_SQRT    // sqrt
+    COLORFN_LINEAR, // linear
+    COLORFN_LOG,    // ln
+    COLORFN_SQRT    // sqrt
 } colorfn_type;
 
 void change_colorfun(colorfn_type f);

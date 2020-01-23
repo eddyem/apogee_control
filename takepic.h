@@ -24,28 +24,28 @@
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 501
 #endif
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <time.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
-#include <err.h>
-#include <limits.h>
-#include <errno.h>
-#include <math.h>
-#include <stdbool.h>
-#include <fitsio.h>
-#include <libintl.h>
 
+#include <err.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <fitsio.h>
+#include <libapogee.h>
+#include <libintl.h>
+#include <limits.h>
+#include <math.h>
 #ifdef USEPNG
 #include <png.h>
 #endif /* USEPNG */
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 
-#include <libapogee.h>
 
 #ifndef GETTEXT_PACKAGE
 #define GETTEXT_PACKAGE "apogee_control"
@@ -61,16 +61,16 @@
  * BTA focal ratio 24.024 m
  */
 #ifndef TELLAT
-	#define TELLAT  (43.6535278)
+    #define TELLAT  (43.6535278)
 #endif
 #ifndef TELLONG
-	#define TELLONG (41.44143375)
+    #define TELLONG (41.44143375)
 #endif
 #ifndef TELALT
-	#define TELALT (2070.0)
+    #define TELALT (2070.0)
 #endif
 #ifndef TELFOCUS
-	#define TELFOCUS (24.024)
+    #define TELFOCUS (24.024)
 #endif
 // filename for default headers (in ~)
 #ifndef DEFCONF
@@ -80,8 +80,8 @@ extern int test_headers;
 
 extern const char *__progname;
 #define info(format, args...)	do{		\
-	printf("%s: ", __progname);		\
-	printf(format,  ## args);		\
-	printf("\n");}while(0)
+    printf("%s: ", __progname);		\
+    printf(format,  ## args);		\
+    printf("\n");}while(0)
 
 #endif // __TAKEPIC_H__

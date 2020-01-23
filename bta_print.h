@@ -23,6 +23,8 @@
 #ifndef __BTA_PRINT_H__
 #define __BTA_PRINT_H__
 
+#include <fitsio.h>
+
 void write_bta_data(fitsfile *fp);
 int push_param();
 

@@ -1,0 +1,1 @@
+apogee_control -M interface=ethernet,deviceType=camera,address=192.168.99.121,port=80,mac=000951ffffff81ffffffed22,interfaceStatus=Available,id=0x1a3,firmwareRev=0x132,model=Aspen-16M

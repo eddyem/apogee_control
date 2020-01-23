@@ -40,92 +40,92 @@ void Resize(int width, int height);
  * calculate window properties on creating & resizing
  */
 void calc_win_props(windowData *win, GLfloat *Wortho, GLfloat *Hortho){
-	if(!win || ! win->image) return;
-	double a, A, w, h, W, H;
-	double Zoom = win->zoom;
-	w = (double)win->image->w / 2.;
-	h = (double)win->image->h / 2.;
-	W = (double)win->w;
-	H = (double)win->h;
-	A = W / H;
-	a = w / h;
-	if(A > a){ // now W & H are parameters for glOrtho
-		win->Daspect = h / H * 2.;
-		W = h * A; H = h;
-	}else{
-		win->Daspect = w / W * 2.;
-		H = w / A; W = w;
-	}
-	if(Wortho) *Wortho = W;
-	if(Hortho) *Hortho = H;
-	// calculate coordinates of center
-	win->x0 = W/Zoom - w + win->x / Zoom;
-	win->y0 = H / Zoom + h - win->y / Zoom;
+    if(!win || ! win->image) return;
+    double a, A, w, h, W, H;
+    double Zoom = win->zoom;
+    w = (double)win->image->w / 2.;
+    h = (double)win->image->h / 2.;
+    W = (double)win->w;
+    H = (double)win->h;
+    A = W / H;
+    a = w / h;
+    if(A > a){ // now W & H are parameters for glOrtho
+        win->Daspect = h / H * 2.;
+        W = h * A; H = h;
+    }else{
+        win->Daspect = w / W * 2.;
+        H = w / A; W = w;
+    }
+    if(Wortho) *Wortho = W;
+    if(Hortho) *Hortho = H;
+    // calculate coordinates of center
+    win->x0 = W/Zoom - w + win->x / Zoom;
+    win->y0 = H / Zoom + h - win->y / Zoom;
 }
 
 /**
  * create window & run main loop
  */
 void createWindow(windowData *win){
-	FNAME();
-	if(!initialized) return;
-	if(!win) return;
-	int w = win->w, h = win->h;
-	DBG("create window with title %s", win->title);
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-	glutInitWindowSize(w, h);
-	win->GL_ID = glutCreateWindow(win->title);
-	DBG("created GL_ID=%d", win->GL_ID);
-	glutReshapeFunc(Resize);
-	glutDisplayFunc(RedrawWindow);
-	glutKeyboardFunc(keyPressed);
-	glutSpecialFunc(keySpPressed);
-	glutMouseFunc(mousePressed);
-	glutMotionFunc(mouseMove);
-	glutIdleFunc(NULL);
-	DBG("init textures");
-	glGenTextures(1, &(win->Tex));
-	win->zoom = 1.;
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, win->Tex);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    FNAME();
+    if(!initialized) return;
+    if(!win) return;
+    int w = win->w, h = win->h;
+    DBG("create window with title %s", win->title);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+    glutInitWindowSize(w, h);
+    win->GL_ID = glutCreateWindow(win->title);
+    DBG("created GL_ID=%d", win->GL_ID);
+    glutReshapeFunc(Resize);
+    glutDisplayFunc(RedrawWindow);
+    glutKeyboardFunc(keyPressed);
+    glutSpecialFunc(keySpPressed);
+    glutMouseFunc(mousePressed);
+    glutMotionFunc(mouseMove);
+    glutIdleFunc(NULL);
+    DBG("init textures");
+    glGenTextures(1, &(win->Tex));
+    win->zoom = 1.;
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, win->Tex);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-   	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, win->image->w, win->image->h, 0,
-			GL_RGB, GL_UNSIGNED_BYTE, win->image->rawdata);
-	glDisable(GL_TEXTURE_2D);
-	totWindows++;
-	createMenu(win->GL_ID);
-	DBG("OK, total opened windows: %d", totWindows);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, win->image->w, win->image->h, 0,
+            GL_RGB, GL_UNSIGNED_BYTE, win->image->rawdata);
+    glDisable(GL_TEXTURE_2D);
+    totWindows++;
+    createMenu(win->GL_ID);
+    DBG("OK, total opened windows: %d", totWindows);
 }
 
 
 int killwindow(int GL_ID){
-	DBG("try to kill win GL_ID=%d", GL_ID);
-	windowData *win;
-	win = searchWindow_byGLID(GL_ID);
-	if(!win) return 0;
-	glutSetWindow(GL_ID); // obviously set window (for closing from menu)
-	if(!win->killthread){
-		pthread_mutex_lock(&win->mutex);
-		// say changed thread to die
-		win->killthread = 1;
-		pthread_mutex_unlock(&win->mutex);
-		DBG("wait for changed thread");
-		pthread_join(win->thread, NULL); // wait while thread dies
-	}
-	if(win->menu) glutDestroyMenu(win->menu);
-	glutDestroyWindow(win->GL_ID);
-	win->GL_ID = 0; // reset for forEachWindow()
-	DBG("destroy texture %d", win->Tex);
-	glDeleteTextures(1, &(win->Tex));
-	glFinish();
-	if(!removeWindow(win->ID)) WARNX(_("Error removing from list"));
-	totWindows--;
-	return 1;
+    DBG("try to kill win GL_ID=%d", GL_ID);
+    windowData *win;
+    win = searchWindow_byGLID(GL_ID);
+    if(!win) return 0;
+    glutSetWindow(GL_ID); // obviously set window (for closing from menu)
+    if(!win->killthread){
+        pthread_mutex_lock(&win->mutex);
+        // say changed thread to die
+        win->killthread = 1;
+        pthread_mutex_unlock(&win->mutex);
+        DBG("wait for changed thread");
+        pthread_join(win->thread, NULL); // wait while thread dies
+    }
+    if(win->menu) glutDestroyMenu(win->menu);
+    glutDestroyWindow(win->GL_ID);
+    win->GL_ID = 0; // reset for forEachWindow()
+    DBG("destroy texture %d", win->Tex);
+    glDeleteTextures(1, &(win->Tex));
+    glFinish();
+    if(!removeWindow(win->ID)) WARNX(_("Error removing from list"));
+    totWindows--;
+    return 1;
 }
 
 /**
@@ -135,89 +135,90 @@ int killwindow(int GL_ID){
  * @return 1 in case of OK, 0 if fault
  */
 int destroyWindow(int window, winIdType type){
-	if(!initialized) return 0;
-	int r = 0;
-	DBG("lock");
-	pthread_mutex_lock(&winini_mutex);
-	DBG("locked");
-	if(type == INNER){
-		windowData *win = searchWindow(window);
-		if(win) r = killwindow(win->GL_ID);
-	}else
-		r = killwindow(window);
-	pthread_mutex_unlock(&winini_mutex);
-	DBG("window killed");
-	return r;
+    if(!initialized) return 0;
+    int r = 0;
+    DBG("lock");
+    pthread_mutex_lock(&winini_mutex);
+    DBG("locked");
+    if(type == INNER){
+        windowData *win = searchWindow(window);
+        if(win) r = killwindow(win->GL_ID);
+    }else
+        r = killwindow(window);
+    pthread_mutex_unlock(&winini_mutex);
+    DBG("window killed");
+    return r;
 }
 
 /**
  * asynchroneous destroying - for using from menu
  */
 void destroyWindow_async(int window_GL_ID){
-	pthread_mutex_lock(&winini_mutex);
-	wannakill_GL_ID = window_GL_ID;
-	pthread_mutex_unlock(&winini_mutex);
+    pthread_mutex_lock(&winini_mutex);
+    wannakill_GL_ID = window_GL_ID;
+    pthread_mutex_unlock(&winini_mutex);
 }
 
 void renderBitmapString(float x, float y, void *font, char *string, GLubyte *color){
-	if(!initialized) return;
-	char *c;
-	int x1=x, W=0;
-	for(c = string; *c; c++){
-		W += glutBitmapWidth(font,*c);// + 1;
-	}
-	x1 -= W/2;
-	glColor3ubv(color);
-	glLoadIdentity();
-	glTranslatef(0.,0., -150);
-	//glTranslatef(x,y, -4000.);
-	for (c = string; *c != '\0'; c++){
-		glColor3ubv(color);
-		glRasterPos2f(x1,y);
-		glutBitmapCharacter(font, *c);
-		//glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
-		x1 = x1 + glutBitmapWidth(font,*c);// + 1;
-	}
+    if(!initialized) return;
+    char *c;
+    int x1=x, W=0;
+    for(c = string; *c; c++){
+        W += glutBitmapWidth(font,*c);// + 1;
+    }
+    x1 -= W/2;
+    glColor3ubv(color);
+    glLoadIdentity();
+    glTranslatef(0.,0., -150);
+    //glTranslatef(x,y, -4000.);
+    for (c = string; *c != '\0'; c++){
+        glColor3ubv(color);
+        glRasterPos2f(x1,y);
+        glutBitmapCharacter(font, *c);
+        //glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
+        x1 = x1 + glutBitmapWidth(font,*c);// + 1;
+    }
 }
 
 void redisplay(int GL_ID){
-	if(!initialized) return;
-	glutSetWindow(GL_ID);
-	glutPostRedisplay();
+    if(!initialized) return;
+    glutSetWindow(GL_ID);
+    glutPostRedisplay();
 }
 
 void RedrawWindow(){
-	if(!initialized) return;
-	int window;
-	window = glutGetWindow();
-	windowData *win = searchWindow_byGLID(window);
-	if(!win) return;
-	if(pthread_mutex_trylock(&win->mutex) != 0) return;
-	int w = win->image->w, h = win->image->h;
-	glClearColor(0.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	glTranslatef(win->x, win->y, 0.);
-	glScalef(-win->zoom, -win->zoom, 1.);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, win->Tex);
-	if(win->image->changed){
-		DBG("change texture as image have been changed");
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, win->image->rawdata);
-		win->image->changed = 0;
-	}
-	w /= 2.; h /= 2.;
-	glBegin(GL_QUADS);
-		glTexCoord2f(0.0f, 0.0f); glVertex2f(-w, -h );
-		glTexCoord2f(1.0f, 0.0f); glVertex2f( w, -h );
-		glTexCoord2f(1.0f, 1.0f); glVertex2f( w,  h );
-		glTexCoord2f(0.0f, 1.0f); glVertex2f(-w,  h );
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
-	glFinish();
-	glutSwapBuffers();
-	pthread_mutex_unlock(&win->mutex);
+    if(!initialized) return;
+    int window;
+    window = glutGetWindow();
+    windowData *win = searchWindow_byGLID(window);
+    if(!win) return;
+    if(pthread_mutex_trylock(&win->mutex) != 0) return;
+    int w = win->image->w, h = win->image->h;
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
+    glTranslatef(win->x, win->y, 0.);
+    glScalef(-win->zoom, -win->zoom, 1.);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, win->Tex);
+    if(win->image->changed){
+        DBG("change texture as image have been changed");
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, win->image->rawdata);
+        win->image->changed = 0;
+    }
+    w /= 2.; h /= 2.;
+    glBegin(GL_QUADS);
+        glTexCoord2f(1.0f, 1.0f); glVertex2f( -w, -h ); // top right
+        glTexCoord2f(1.0f, 0.0f); glVertex2f( -w, h ); // bottom right
+        glTexCoord2f(0.0f, 0.0f); glVertex2f(w, h ); // bottom left
+        glTexCoord2f(0.0f, 1.0f); glVertex2f(w,  -h ); // top left
+
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+    glFinish();
+    glutSwapBuffers();
+    pthread_mutex_unlock(&win->mutex);
 }
 
 /**
@@ -225,49 +226,49 @@ void RedrawWindow(){
  * waits for global signals to create windows & make other actions
  */
 void *Redraw(_U_ void *arg){
-	while(1){
-		pthread_mutex_lock(&winini_mutex);
-		if(!initialized){
-			DBG("!initialized");
-			pthread_mutex_unlock(&winini_mutex);
-			pthread_exit(NULL);
-		}
-		if(wannacreate){ // someone asks to create window
-			DBG("call for window creating, id: %d", wininiptr->ID);
-			createWindow(wininiptr);
-			DBG("done!");
-			wininiptr = NULL;
-			wannacreate = 0;
-		}
-		if(wannakill_GL_ID){
-			usleep(10000); // wait a little to be sure that caller is closed
-			killwindow(wannakill_GL_ID);
-			wannakill_GL_ID = 0;
-		}
-		forEachWindow(redisplay);
-		pthread_mutex_unlock(&winini_mutex);
-		if(totWindows) glutMainLoopEvent(); // process actions if there are windows
-		usleep(10000);
-	}
-	return NULL;
+    while(1){
+        pthread_mutex_lock(&winini_mutex);
+        if(!initialized){
+            DBG("!initialized");
+            pthread_mutex_unlock(&winini_mutex);
+            pthread_exit(NULL);
+        }
+        if(wannacreate){ // someone asks to create window
+            DBG("call for window creating, id: %d", wininiptr->ID);
+            createWindow(wininiptr);
+            DBG("done!");
+            wininiptr = NULL;
+            wannacreate = 0;
+        }
+        if(wannakill_GL_ID){
+            usleep(10000); // wait a little to be sure that caller is closed
+            killwindow(wannakill_GL_ID);
+            wannakill_GL_ID = 0;
+        }
+        forEachWindow(redisplay);
+        pthread_mutex_unlock(&winini_mutex);
+        if(totWindows) glutMainLoopEvent(); // process actions if there are windows
+        usleep(10000);
+    }
+    return NULL;
 }
 
 void Resize(int width, int height){
-	if(!initialized) return;
-	int window = glutGetWindow();
-	windowData *win = searchWindow_byGLID(window);
-	if(!win) return;
-	glutReshapeWindow(width, height);
-	win->w = width;
-	win->h = height;
-	glViewport(0, 0, width, height);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	GLfloat W, H;
-	calc_win_props(win, &W, &H);
-	glOrtho(-W,W, -H,H, -1., 1.);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+    if(!initialized) return;
+    int window = glutGetWindow();
+    windowData *win = searchWindow_byGLID(window);
+    if(!win) return;
+    glutReshapeWindow(width, height);
+    win->w = width;
+    win->h = height;
+    glViewport(0, 0, width, height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    GLfloat W, H;
+    calc_win_props(win, &W, &H);
+    glOrtho(-W,W, -H,H, -1., 1.);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
 /**
@@ -280,96 +281,96 @@ void Resize(int width, int height){
  *            or allocated outside data
  */
 windowData *createGLwin(char *title, int w, int h, rawimage *rawdata){
-	FNAME();
-	if(!initialized) return NULL;
-	windowData *win = MALLOC(windowData, 1);
-	if(!addWindow(win)){
-		FREE(win);
-		return NULL;
-	}
-	rawimage *raw;
-	if(rawdata){
-		raw = rawdata;
-	}else{
-		raw = MALLOC(rawimage, 1);
-		if(raw){
-			raw->rawdata = MALLOC(GLubyte, w*h*3);
-			raw->w = w;
-			raw->h = h;
-			raw->changed = 1;
-			// raw->protected is zero automatically
-		}
-	}
-	if(!raw || !raw->rawdata){
-		free(raw);
-		return NULL;
-	}
-	win->title = strdup(title);
-	win->image = raw;
-	if(pthread_mutex_init(&win->mutex, NULL)){
-		WARN(_("Can't init mutex!"));
-		removeWindow(win->ID);
-		return NULL;
-	}
-	win->w = w;
-	win->h = h;
-	win->zoom = 1.;
-	while(wannacreate); // wait if there was another creating
-	pthread_mutex_lock(&winini_mutex);
-	wininiptr = win;
-	wannacreate = 1;
-	pthread_mutex_unlock(&winini_mutex);
-	DBG("wait for creatin");
-	while(wannacreate); // wait until window created from main thread
-	DBG("window created");
-	return win;
+    FNAME();
+    if(!initialized) return NULL;
+    windowData *win = MALLOC(windowData, 1);
+    if(!addWindow(win)){
+        FREE(win);
+        return NULL;
+    }
+    rawimage *raw;
+    if(rawdata){
+        raw = rawdata;
+    }else{
+        raw = MALLOC(rawimage, 1);
+        if(raw){
+            raw->rawdata = MALLOC(GLubyte, w*h*3);
+            raw->w = w;
+            raw->h = h;
+            raw->changed = 1;
+            // raw->protected is zero automatically
+        }
+    }
+    if(!raw || !raw->rawdata){
+        free(raw);
+        return NULL;
+    }
+    win->title = strdup(title);
+    win->image = raw;
+    if(pthread_mutex_init(&win->mutex, NULL)){
+        WARN(_("Can't init mutex!"));
+        removeWindow(win->ID);
+        return NULL;
+    }
+    win->w = w;
+    win->h = h;
+    win->zoom = 1.;
+    while(wannacreate); // wait if there was another creating
+    pthread_mutex_lock(&winini_mutex);
+    wininiptr = win;
+    wannacreate = 1;
+    pthread_mutex_unlock(&winini_mutex);
+    DBG("wait for creatin");
+    while(wannacreate); // wait until window created from main thread
+    DBG("window created");
+    return win;
 }
 
 /**
  * Init freeGLUT
  */
 void imageview_init(){
-	FNAME();
-	char *v[] = {PROJNAME, NULL};
-	int c = 1;
-	static int glutnotinited = 1;
-	if(initialized){
-		// "Уже инициализировано!"
-		WARNX(_("Already initialized!"));
-		return;
-	}
-	if(glutnotinited){
-		DBG("init");
-		XInitThreads(); // we need it for threaded windows
-		glutInit(&c, v);
-		glutnotinited = 0;
-	}
-	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
-	pthread_create(&GLUTthread, NULL, &Redraw, NULL);
-	initialized = 1;
+    FNAME();
+    char *v[] = {PROJNAME, NULL};
+    int c = 1;
+    static int glutnotinited = 1;
+    if(initialized){
+        // "Уже инициализировано!"
+        WARNX(_("Already initialized!"));
+        return;
+    }
+    if(glutnotinited){
+        DBG("init");
+        XInitThreads(); // we need it for threaded windows
+        glutInit(&c, v);
+        glutnotinited = 0;
+    }
+    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
+    pthread_create(&GLUTthread, NULL, &Redraw, NULL);
+    initialized = 1;
 }
 
 void killwindow_v(int GL_ID){
-	DBG("GL_ID: %d", GL_ID);
-	killwindow(GL_ID);
+    DBG("GL_ID: %d", GL_ID);
+    killwindow(GL_ID);
 }
 
 /**
  * Close all opened windows and terminate main GLUT thread
  */
 void clear_GL_context(){
-	FNAME();
-	if(!initialized) return;
-	DBG("lock");
-	pthread_mutex_lock(&winini_mutex);
-	initialized = 0;
-	DBG("locked");
-	 // kill main GLUT thread
-	pthread_mutex_unlock(&winini_mutex);
-	forEachWindow(killwindow_v);
-	DBG("join");
-	pthread_join(GLUTthread, NULL); // wait while main thread exits
-	DBG("main GL thread cancelled");
+    FNAME();
+    if(!initialized) return;
+    DBG("lock");
+    pthread_mutex_lock(&winini_mutex);
+    initialized = 0;
+    DBG("locked");
+     // kill main GLUT thread
+    pthread_mutex_unlock(&winini_mutex);
+    forEachWindow(killwindow_v);
+    DBG("join");
+    pthread_join(GLUTthread, NULL); // wait while main thread exits
+    DBG("main GL thread cancelled");
 }
 
 
@@ -379,21 +380,21 @@ void clear_GL_context(){
  * 		X,Y - coordinates of appropriate point at picture
  */
 void conv_mouse_to_image_coords(int x, int y,
-								float *X, float *Y,
-								windowData *window){
-	float a = window->Daspect / window->zoom;
-	*X = x * a - window->x0;
-	*Y = window->y0 - y * a;
+                                float *X, float *Y,
+                                windowData *window){
+    float a = window->Daspect / window->zoom;
+    *X = x * a - window->x0;
+    *Y = window->y0 - y * a;
 }
 
 void conv_image_to_mouse_coords(float X, float Y,
-								int *x, int *y,
-								windowData *window){
-	float a = window->zoom / window->Daspect;
-	*x = (X + window->x0) * a;
-	*y = (window->y0 - Y) * a;
+                                int *x, int *y,
+                                windowData *window){
+    float a = window->zoom / window->Daspect;
+    *x = (X + window->x0) * a;
+    *y = (window->y0 - Y) * a;
 }
 
 int get_windows_amount(){
-	return totWindows;
+    return totWindows;
 }
