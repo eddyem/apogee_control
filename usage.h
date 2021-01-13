@@ -35,7 +35,7 @@ enum{
 	Wake
 };
 
-unsigned short
+extern unsigned short
 	 ROspeed
 ;
 
