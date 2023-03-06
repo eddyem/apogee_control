@@ -439,7 +439,7 @@ void ApnGlueGetMaxValues(double *exptime, int *roiw, int *roih, int *osw,
 			exptime[0] = alta->GetMinExposureTime();
 			exptime[1] = alta->GetMaxExposureTime();
 		}
-		if(roiw) *roiw = alta->GetTotalRows();
+		if(roiw) *roiw = alta->GetMaxImgCols();
 		if(roih) *roih = alta->GetMaxImgRows();
 		if(osw) *osw = alta->GetNumOverscanCols();
 		if(binw) *binw = alta->GetMaxBinCols();
